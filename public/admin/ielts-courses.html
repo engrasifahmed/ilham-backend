@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Courses - ILHAM Admin</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container">
+        <h1>IELTS Courses Management</h1>
+
+        <button class="success" onclick="openCreateModal()" style="margin-bottom: 24px;">
+            + Create New Course
+        </button>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Batch Name</th>
+                        <th>Instructor</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="courses-table">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <div class="spinner"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Create Course Modal -->
+        <div class="modal" id="create-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Create New IELTS Course</h2>
+                <form id="create-form">
+                    <div class="form-group">
+                        <label for="batch-name">Batch Name *</label>
+                        <input type="text" id="batch-name" name="batch_name" required
+                            placeholder="e.g., IELTS Batch Jan 2026">
+                    </div>
+                    <div class="form-group">
+                        <label for="instructor">Instructor *</label>
+                        <input type="text" id="instructor" name="instructor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="start-date">Start Date *</label>
+                        <input type="date" id="start-date" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end-date">End Date *</label>
+                        <input type="date" id="end-date" name="end_date" required>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="closeCreateModal()">Cancel</button>
+                        <button type="submit" class="success">Create Course</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Course Modal -->
+        <div class="modal" id="edit-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Edit IELTS Course</h2>
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id" name="id">
+                    <div class="form-group">
+                        <label for="edit-batch-name">Batch Name *</label>
+                        <input type="text" id="edit-batch-name" name="batch_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-instructor">Instructor *</label>
+                        <input type="text" id="edit-instructor" name="instructor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-start-date">Start Date *</label>
+                        <input type="date" id="edit-start-date" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-end-date">End Date *</label>
+                        <input type="date" id="edit-end-date" name="end_date" required>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="success">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        async function loadCourses() {
+            try {
+                const courses = await api('/api/admin/ielts/courses');
+                const tbody = document.getElementById('courses-table');
+
+                if (!courses || courses.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No courses found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = courses.map(course => {
+                    const startDate = new Date(course.start_date);
+                    const endDate = new Date(course.end_date);
+                    const now = new Date();
+                    let status = 'Upcoming';
+                    let statusClass = 'info';
+
+                    if (now >= startDate && now <= endDate) {
+                        status = 'Ongoing';
+                        statusClass = 'success';
+                    } else if (now > endDate) {
+                        status = 'Completed';
+                        statusClass = 'warning';
+                    }
+
+                    return `
+          <tr>
+            <td>${course.id}</td>
+            <td>${course.batch_name}</td>
+            <td>${course.instructor}</td>
+            <td>${formatDate(course.start_date)}</td>
+            <td>${formatDate(course.end_date)}</td>
+            <td><span class="badge ${statusClass}">${status}</span></td>
+            <td>
+              <button onclick="openEditModal(${course.id}, '${(course.batch_name || '').replace(/'/g, "\\'")}', '${(course.instructor || '').replace(/'/g, "\\'")}', '${course.start_date}', '${course.end_date}')" style="margin-right: 8px;">Edit</button>
+              <button class="danger" onclick="deleteCourse(${course.id}, '${(course.batch_name || '').replace(/'/g, "\\'")}')">Delete</button>
+            </td>
+          </tr>
+        `}).join('');
+
+            } catch (error) {
+                showAlert('Failed to load courses: ' + error.message, 'error');
+            }
+        }
+
+        // Create Modal
+        function openCreateModal() {
+            document.getElementById('create-modal').style.display = 'flex';
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').style.display = 'none';
+            document.getElementById('create-form').reset();
+        }
+
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                await api('/api/admin/ielts/courses/create', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                showAlert('Course created successfully!', 'success');
+                closeCreateModal();
+                loadCourses();
+            } catch (error) {
+                showAlert('Failed to create course: ' + error.message, 'error');
+            }
+        });
+
+        // Edit Modal
+        function openEditModal(id, batchName, instructor, startDate, endDate) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-batch-name').value = batchName;
+            document.getElementById('edit-instructor').value = instructor;
+            document.getElementById('edit-start-date').value = startDate.split('T')[0];
+            document.getElementById('edit-end-date').value = endDate.split('T')[0];
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            document.getElementById('edit-form').reset();
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = formData.get('id');
+            const data = Object.fromEntries(formData.entries());
+            delete data.id;
+
+            try {
+                await api(`/api/admin/ielts/courses/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+
+                showAlert('Course updated successfully!', 'success');
+                closeEditModal();
+                loadCourses();
+            } catch (error) {
+                showAlert('Failed to update course: ' + error.message, 'error');
+            }
+        });
+
+        // Delete Course
+        async function deleteCourse(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"? This will also delete all related mock tests and results.`)) {
+                return;
+            }
+
+            try {
+                await api(`/api/admin/ielts/courses/${id}`, {
+                    method: 'DELETE'
+                });
+
+                showAlert('Course deleted successfully!', 'success');
+                loadCourses();
+            } catch (error) {
+                showAlert('Failed to delete course: ' + error.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCourses);
+    </script>
+</body>
+
+</html>

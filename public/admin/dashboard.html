@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Dashboard</h1>
+
+    <!-- Metrics Cards -->
+    <div class="grid">
+      <div class="card">
+        <h3>Total Students</h3>
+        <div class="metric" id="total-students">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Total Applications</h3>
+        <div class="metric" id="total-applications">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Total Revenue</h3>
+        <div class="metric" id="total-revenue">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Pending Invoices</h3>
+        <div class="metric" id="pending-invoices">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid" style="margin-top: 32px;">
+      <div class="card">
+        <h3>Applications by Status</h3>
+        <canvas id="applications-chart" style="max-height: 300px;"></canvas>
+      </div>
+      <div class="card">
+        <h3>Revenue Trend (Last 6 Months)</h3>
+        <canvas id="revenue-chart" style="max-height: 300px;"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="card" style="margin-top: 32px;">
+      <h3>Recent Applications</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>University</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="recent-applications">
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 40px;">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="layout.js"></script>
+  <script>
+    let applicationsChart = null;
+    let revenueChart = null;
+
+    async function loadDashboard() {
+      try {
+        // Load metrics
+        const metrics = await api('/api/admin/dashboard');
+
+        document.getElementById('total-students').innerHTML =
+          `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">${metrics.totalStudents || 0}</span>`;
+
+        document.getElementById('total-applications').innerHTML =
+          `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">${metrics.totalApplications || 0}</span>`;
+
+        document.getElementById('total-revenue').innerHTML =
+          `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">$${(metrics.totalRevenue || 0).toLocaleString()}</span>`;
+
+        document.getElementById('pending-invoices').innerHTML =
+          `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">${metrics.pendingInvoices || 0}</span>`;
+
+        // Applications by Status Chart
+        if (metrics.applicationsByStatus && metrics.applicationsByStatus.length > 0) {
+          const ctx = document.getElementById('applications-chart').getContext('2d');
+
+          if (applicationsChart) {
+            applicationsChart.destroy();
+          }
+
+          const statusData = metrics.applicationsByStatus.reduce((acc, item) => {
+            acc[item.status] = item.count;
+            return acc;
+          }, {});
+
+          applicationsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: Object.keys(statusData),
+              datasets: [{
+                data: Object.values(statusData),
+                backgroundColor: [
+                  'rgba(96, 165, 250, 0.9)',    // Applied - Blue
+                  'rgba(52, 199, 89, 0.9)',      // Approved - Green
+                  'rgba(255, 193, 7, 0.9)',      // Rejected - Yellow/Amber
+                  'rgba(255, 159, 10, 0.9)'      // Other - Orange
+                ],
+                borderColor: 'rgba(255, 255, 255, 0.5)',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: '#FFFFFF',
+                    font: { size: 12 }
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenue-chart').getContext('2d');
+
+        if (revenueChart) {
+          revenueChart.destroy();
+        }
+
+        let months = [];
+        let revenueData = [];
+
+        if (metrics.monthlyRevenue && metrics.monthlyRevenue.length > 0) {
+          months = metrics.monthlyRevenue.map(item => item.month);
+          revenueData = metrics.monthlyRevenue.map(item => item.total);
+        } else {
+          // Fallback if no data yet (empty chart but correct labels)
+          const today = new Date();
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            months.push(d.toLocaleString('default', { month: 'short' }));
+            revenueData.push(0);
+          }
+        }
+
+        revenueChart = new Chart(revenueCtx, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Revenue ($)',
+              data: revenueData,
+              borderColor: 'rgba(96, 165, 250, 1)',
+              backgroundColor: 'rgba(96, 165, 250, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#FFFFFF',
+                  font: { size: 12 }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { color: '#FFFFFF' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              },
+              x: {
+                ticks: { color: '#FFFFFF' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              }
+            }
+          }
+        });
+
+        // Load recent applications
+        const applications = await api('/api/admin/applications');
+        const tbody = document.getElementById('recent-applications');
+
+        if (!applications || applications.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No recent applications</td></tr>';
+          return;
+        }
+
+        const recent = applications.slice(0, 5);
+        tbody.innerHTML = recent.map(app => `
+          <tr>
+            <td>${app.student_name || 'N/A'}</td>
+            <td>${app.university_name || 'N/A'}</td>
+            <td>${getStatusBadge(app.status)}</td>
+            <td>${formatDate(app.created_at)}</td>
+          </tr>
+        `).join('');
+
+      } catch (error) {
+        console.error('Dashboard load error:', error);
+        showAlert('Failed to load dashboard: ' + error.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+  </script>
+</body>
+
+</html>

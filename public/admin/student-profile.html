@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - ILHAM Admin</title>
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="table-fix.css">
+    <style>
+        .profile-header {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            backdrop-filter: var(--blur-medium);
+        }
+
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .profile-photo-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(91, 163, 245, 0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container">
+        <button onclick="window.location.href='students.html'" style="margin-bottom: 20px;">← Back to Students</button>
+
+        <div id="profile-content">
+            <div style="text-align: center; padding: 60px;">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: var(--text-muted);">Loading student profile...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        const studentId = new URLSearchParams(window.location.search).get('id');
+
+        if (!studentId) {
+            document.getElementById('profile-content').innerHTML = `
+        <div style="text-align: center; padding: 60px;">
+          <h2 style="color: var(--text-muted);">No student ID provided</h2>
+          <button onclick="window.location.href='students.html'">Go to Students List</button>
+        </div>
+      `;
+        } else {
+            loadStudentProfile();
+        }
+
+        async function loadStudentProfile() {
+            try {
+                const student = await api(`/api/admin/students/${studentId}`);
+
+                const initials = student.full_name ? student.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'S';
+
+                document.getElementById('profile-content').innerHTML = `
+          <div class="profile-header">
+            ${student.photo_url ?
+                        `<img src="${student.photo_url}" alt="${student.full_name}" class="profile-photo">` :
+                        `<div class="profile-photo-placeholder">${initials}</div>`
+                    }
+            <div class="profile-info">
+              <div class="profile-name">${student.full_name || 'N/A'}</div>
+              <div style="color: var(--text-muted); margin-bottom: 20px;">Student ID: ${student.id}</div>
+              
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">Email</div>
+                  <div class="info-value">${student.email || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Phone</div>
+                  <div class="info-value">${student.phone || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Passport No</div>
+                  <div class="info-value">${student.passport_no || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Nationality</div>
+                  <div class="info-value">${student.nationality || 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="section-title">Applications</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>University</th>
+                  <th>Country</th>
+                  <th>Status</th>
+                  <th>Applied Date</th>
+                  <th>Counselor Remark</th>
+                </tr>
+              </thead>
+              <tbody id="applications-table">
+                <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h2 class="section-title">IELTS Results</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Test Name</th>
+                  <th>Listening</th>
+                  <th>Reading</th>
+                  <th>Writing</th>
+                  <th>Speaking</th>
+                  <th>Overall</th>
+                </tr>
+              </thead>
+              <tbody id="results-table">
+                <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h2 class="section-title">Invoices & Payments</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Created Date</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-table">
+                <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+
+                // Load applications
+                loadApplications(studentId);
+                loadResults(studentId);
+                loadInvoices(studentId);
+
+            } catch (error) {
+                document.getElementById('profile-content').innerHTML = `
+          <div style="text-align: center; padding: 60px;">
+            <h2 style="color: #FF3B30;">Error loading profile</h2>
+            <p style="color: var(--text-muted);">${error.message}</p>
+            <button onclick="window.location.href='students.html'">Go to Students List</button>
+          </div>
+        `;
+            }
+        }
+
+        async function loadApplications(studentId) {
+            try {
+                const apps = await api(`/api/admin/students/${studentId}/applications`);
+                const tbody = document.getElementById('applications-table');
+
+                if (!apps || apps.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No applications found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = apps.map(app => `
+          <tr>
+            <td>${app.university_name}</td>
+            <td>${app.university_country}</td>
+            <td><span class="badge ${app.status === 'Approved' ? 'success' : app.status === 'Rejected' ? 'danger' : 'info'}">${app.status}</span></td>
+            <td>${new Date(app.created_at).toLocaleDateString()}</td>
+            <td>${app.counselor_remark || '-'}</td>
+          </tr>
+        `).join('');
+            } catch (error) {
+                document.getElementById('applications-table').innerHTML = '<tr><td colspan="5" style="text-align: center; color: #FF3B30;">Failed to load applications</td></tr>';
+            }
+        }
+
+        async function loadResults(studentId) {
+            try {
+                const results = await api(`/api/admin/students/${studentId}/results`);
+                const tbody = document.getElementById('results-table');
+
+                if (!results || results.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No IELTS results found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = results.map(r => `
+          <tr>
+            <td>${r.test_name}</td>
+            <td>${r.listening || '-'}</td>
+            <td>${r.reading || '-'}</td>
+            <td>${r.writing || '-'}</td>
+            <td>${r.speaking || '-'}</td>
+            <td><strong>${r.overall || '-'}</strong></td>
+          </tr>
+        `).join('');
+            } catch (error) {
+                document.getElementById('results-table').innerHTML = '<tr><td colspan="6" style="text-align: center; color: #FF3B30;">Failed to load results</td></tr>';
+            }
+        }
+
+        async function loadInvoices(studentId) {
+            try {
+                const invoices = await api(`/api/admin/students/${studentId}/invoices`);
+                const tbody = document.getElementById('invoices-table');
+
+                if (!invoices || invoices.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No invoices found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = invoices.map(inv => `
+          <tr>
+            <td>#${inv.id}</td>
+            <td>$${parseFloat(inv.amount).toFixed(2)}</td>
+            <td><span class="badge ${inv.status === 'Paid' ? 'success' : 'warning'}">${inv.status}</span></td>
+            <td>${new Date(inv.created_at).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
+            } catch (error) {
+                document.getElementById('invoices-table').innerHTML = '<tr><td colspan="4" style="text-align: center; color: #FF3B30;">Failed to load invoices</td></tr>';
+            }
+        }
+    </script>
+</body>
+
+</html>

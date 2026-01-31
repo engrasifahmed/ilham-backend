@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Notifications Management</h1>
+
+    <div class="card">
+      <div id="notifications-list">
+        <div style="text-align: center; padding: 40px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="layout.js"></script>
+  <script>
+    async function loadNotifications() {
+      try {
+        const notifications = await api('/api/notifications');
+        const container = document.getElementById('notifications-list');
+
+        if (!notifications || notifications.length === 0) {
+          container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px;">No notifications found</p>';
+          return;
+        }
+
+        container.innerHTML = notifications.map(notif => `
+          <div class="notification-item ${notif.is_read ? '' : 'unread'}" id="notif-${notif.id}">
+            <div class="notification-content">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                ${notif.is_read ?
+            '<span class="badge success">Read</span>' :
+            '<span class="badge warning">Unread</span>'
+          }
+                <span style="color: var(--text-muted); font-size: 12px;">${formatDate(notif.created_at)}</span>
+              </div>
+              <p style="margin: 0; font-size: 15px;">${notif.message}</p>
+            </div>
+            <div class="notification-actions">
+              ${!notif.is_read ? `
+                <button class="success" onclick="markAsRead(${notif.id})">Mark as Read</button>
+              ` : ''}
+              <button class="danger" onclick="deleteNotification(${notif.id})">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        showAlert('Failed to load notifications: ' + error.message, 'error');
+      }
+    }
+
+    async function markAsRead(notificationId) {
+      try {
+        await api(`/api/notifications/${notificationId}/read`, {
+          method: 'PUT'
+        });
+
+        showAlert('Notification marked as read', 'success');
+
+        // Update UI
+        const notifElement = document.getElementById(`notif-${notificationId}`);
+        if (notifElement) {
+          notifElement.classList.remove('unread');
+          const badge = notifElement.querySelector('.badge');
+          badge.className = 'badge success';
+          badge.textContent = 'Read';
+
+          // Remove mark as read button
+          const markBtn = notifElement.querySelector('button.success');
+          if (markBtn) markBtn.remove();
+        }
+
+      } catch (error) {
+        showAlert('Failed to mark notification as read: ' + error.message, 'error');
+      }
+    }
+
+    async function deleteNotification(notificationId) {
+      if (!confirm('Are you sure you want to delete this notification?')) {
+        return;
+      }
+
+      try {
+        await api(`/api/notifications/${notificationId}`, {
+          method: 'DELETE'
+        });
+
+        showAlert('Notification deleted', 'success');
+
+        // Remove from UI
+        const notifElement = document.getElementById(`notif-${notificationId}`);
+        if (notifElement) {
+          notifElement.style.opacity = '0';
+          setTimeout(() => notifElement.remove(), 300);
+        }
+
+      } catch (error) {
+        showAlert('Failed to delete notification: ' + error.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNotifications);
+  </script>
+</body>
+
+</html>

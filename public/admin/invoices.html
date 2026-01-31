@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoices - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Invoice Management</h1>
+
+    <div class="card">
+      <h2>Create New Invoice</h2>
+      <form id="invoice-form" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin: 0;">
+          <label for="application-id">Application ID</label>
+          <input type="number" id="application-id" placeholder="Enter application ID" required>
+        </div>
+        <div class="form-group" style="margin: 0;">
+          <label for="amount">Amount (৳)</label>
+          <input type="number" id="amount" placeholder="Enter amount" step="0.01" required>
+        </div>
+        <button type="submit" class="success">Create Invoice</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>All Invoices</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice ID</th>
+            <th>Application ID</th>
+            <th>Student</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Created Date</th>
+          </tr>
+        </thead>
+        <tbody id="invoices-table">
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="layout.js"></script>
+  <script>
+    async function loadInvoices() {
+      try {
+        const invoices = await api('/api/admin/invoices');
+        const tbody = document.getElementById('invoices-table');
+
+        if (!invoices || invoices.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No invoices found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = invoices.map(invoice => `
+          <tr>
+            <td>${invoice.id}</td>
+            <td>${invoice.application_id}</td>
+            <td>${invoice.student_name || 'N/A'}</td>
+            <td>${formatCurrency(invoice.amount)}</td>
+            <td>${getStatusBadge(invoice.status)}</td>
+            <td>${formatDate(invoice.created_at)}</td>
+          </tr>
+        `).join('');
+
+      } catch (error) {
+        showAlert('Failed to load invoices: ' + error.message, 'error');
+      }
+    }
+
+    document.getElementById('invoice-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const applicationId = document.getElementById('application-id').value;
+      const amount = document.getElementById('amount').value;
+
+      try {
+        await api('/api/admin/invoice', {
+          method: 'POST',
+          body: JSON.stringify({
+            application_id: parseInt(applicationId),
+            amount: parseFloat(amount)
+          })
+        });
+
+        showAlert('Invoice created successfully!', 'success');
+
+        // Clear form
+        e.target.reset();
+
+        // Reload invoices
+        loadInvoices();
+
+      } catch (error) {
+        showAlert('Failed to create invoice: ' + error.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadInvoices);
+  </script>
+</body>
+
+</html>

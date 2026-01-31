@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - ILHAM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .otp-container {
+            background: rgba(30, 35, 50, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .otp-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #5b9bd5;
+            margin-bottom: 8px;
+        }
+
+        .otp-header p {
+            color: #b0bec5;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0bec5;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 4px;
+            font-family: monospace;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #5b9bd5;
+            box-shadow: 0 0 0 3px rgba(91, 155, 213, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.6);
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-left: 4px solid #e74c3c;
+            color: #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: left;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="otp-container">
+        <div class="otp-header">
+            <h1>VERIFY EMAIL</h1>
+            <p>Enter the 6-digit code sent to your email</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="otp-form">
+            <input type="hidden" id="email" name="email">
+
+            <div class="form-group">
+                <label for="otp">One-Time Password (OTP)</label>
+                <input type="text" id="otp" name="otp" placeholder="000000" maxlength="6" required>
+            </div>
+
+            <button type="submit" class="verify-btn" id="verify-btn">Verify Account</button>
+        </form>
+
+        <div style="margin-top: 20px;">
+            <a href="login.html" style="color: #b0bec5; font-size: 13px; text-decoration: none;">Back to Login</a>
+        </div>
+    </div>
+
+    <script>
+        // Get email from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+
+        if (emailParam) {
+            document.getElementById('email').value = emailParam;
+            // Also update the description header maybe?
+        } else {
+            document.getElementById('error-message').textContent = "No email provided. Invalid link.";
+            document.getElementById('error-message').classList.add('show');
+        }
+
+        const otpForm = document.getElementById('otp-form');
+        const verifyBtn = document.getElementById('verify-btn');
+        const errorMessage = document.getElementById('error-message');
+
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const otp = document.getElementById('otp').value;
+
+            if (!email) {
+                errorMessage.textContent = "Email is missing.";
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'Verifying...';
+            errorMessage.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Verification failed');
+                }
+
+                // Success - store token if returned (assuming backend logs in immediately)
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    // Decode token to see role, or just default to dashboard
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    // If no token, ask to login
+                    alert('Verification successful! Please login.');
+                    window.location.href = 'login.html';
+                }
+
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.classList.add('show');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verify Account';
+            }
+        });
+    </script>
+</body>
+
+</html>

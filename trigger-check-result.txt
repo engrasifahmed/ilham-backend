@@ -1,0 +1,79 @@
+Checking triggers on applications table...
+
+
+Trigger: after_application_approved
+Event: UPDATE
+Timing: AFTER
+
+Definition:
+CREATE DEFINER=`root`@`localhost` TRIGGER `after_application_approved` AFTER UPDATE ON `applications` FOR EACH ROW BEGIN
+  DECLARE v_student_id INT;
+
+  IF OLD.status <> 'Approved' AND NEW.status = 'Approved' THEN
+
+    SELECT student_id
+    INTO v_student_id
+    FROM applications
+    WHERE id = NEW.id;
+
+    INSERT INTO notifications (student_id, message, is_read, created_at)
+    VALUES (
+      v_student_id,
+      CONCAT(
+        'Your application to university ID ',
+        NEW.university_id,
+        ' has been approved.'
+      ),
+      0,
+      NOW()
+    );
+  END IF;
+
+END
+
+================================================================================
+
+Trigger: after_application_rejected
+Event: UPDATE
+Timing: AFTER
+
+Definition:
+CREATE DEFINER=`root`@`localhost` TRIGGER after_application_rejected 
+        AFTER UPDATE ON applications 
+        FOR EACH ROW 
+        BEGIN
+          DECLARE v_student_id INT;
+          DECLARE v_university_name VARCHAR(150);
+
+          IF OLD.status <> 'Rejected' AND NEW.status = 'Rejected' THEN
+            SELECT student_id INTO v_student_id FROM applications WHERE id = NEW.id;
+            SELECT name INTO v_university_name FROM universities WHERE id = NEW.university_id;
+
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            VALUES (
+              v_student_id,
+              CONCAT('Your application to ', v_university_name, ' has been rejected. You may apply again.'),
+              0,
+              NOW()
+            );
+          END IF;
+        END
+
+================================================================================
+
+Trigger: after_application_status_change
+Event: UPDATE
+Timing: AFTER
+
+Definition:
+CREATE DEFINER=`root`@`localhost` TRIGGER after_application_status_change 
+        AFTER UPDATE ON applications 
+        FOR EACH ROW 
+        BEGIN
+          IF OLD.status <> NEW.status THEN
+            INSERT INTO application_history (application_id, old_status, new_status, remark, changed_at)
+            VALUES (NEW.id, OLD.status, NEW.status, NEW.counselor_remark, NOW());
+          END IF;
+        END
+
+================================================================================

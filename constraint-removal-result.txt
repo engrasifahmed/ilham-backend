@@ -1,0 +1,34 @@
+🔧 Removing unique constraint to allow student reapplication...
+
+Step 1: Dropping foreign key constraints...
+✅ Dropped fk_applications_student
+✅ Dropped fk_applications_university
+
+Step 2: Removing unique constraint...
+✅ Removed uniq_student_university
+
+Step 3: Recreating foreign key constraints...
+✅ Recreated fk_applications_student
+✅ Recreated fk_applications_university
+
+================================================================================
+✅ SUCCESS! Students can now reapply to the same university after rejection.
+================================================================================
+
+Final table structure:
+CREATE TABLE `applications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `university_id` int(11) NOT NULL,
+  `status` enum('Applied','Approved','Rejected') NOT NULL,
+  `counselor_remark` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `fk_applications_university` (`university_id`),
+  KEY `idx_applications_status` (`status`),
+  KEY `idx_applications_created_at` (`created_at`),
+  KEY `fk_applications_student` (`student_id`),
+  CONSTRAINT `fk_applications_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_applications_university` FOREIGN KEY (`university_id`) REFERENCES `universities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

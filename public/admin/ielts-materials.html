@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Materials - ILHAM Admin</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container">
+        <h1>IELTS Materials Management</h1>
+
+        <button class="success" onclick="openCreateModal()" style="margin-bottom: 24px;">
+            + Upload New Material
+        </button>
+
+        <div class="card">
+            <h2>All Materials</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Course</th>
+                        <th>Free</th>
+                        <th>File/Link</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="materials-table">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <div class="spinner"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Create Material Modal -->
+        <div class="modal" id="create-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Upload New Material</h2>
+                <form id="create-form">
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" name="title" required
+                            placeholder="e.g., IELTS Reading Practice Test 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="3"
+                            placeholder="Brief description..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="material-type">Material Type *</label>
+                        <select id="material-type" name="material_type" required>
+                            <option value="">Select type...</option>
+                            <option value="PDF">PDF Document</option>
+                            <option value="Video">Video</option>
+                            <option value="Audio">Audio</option>
+                            <option value="Link">External Link</option>
+                            <option value="Document">Document</option>
+                        </select>
+                    </div>
+
+                    <!-- Upload Type Toggle -->
+                    <div class="form-group">
+                        <label>Upload Source *</label>
+                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="upload_source" value="url" checked
+                                    onchange="toggleUploadType(this.value, 'create')">
+                                External URL
+                            </label>
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="upload_source" value="file"
+                                    onchange="toggleUploadType(this.value, 'create')">
+                                Local File Upload
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="create-url-group">
+                        <label for="file-url">File URL or Link *</label>
+                        <input type="text" id="file-url" name="file_url" placeholder="https://example.com/file.pdf">
+                        <small style="color: rgba(255,255,255,0.7);">Enter the URL to the file (upload to cloud storage
+                            first)</small>
+                    </div>
+
+                    <div class="form-group" id="create-file-group" style="display: none;">
+                        <label for="file-upload">Upload File *</label>
+                        <input type="file" id="file-upload" name="file">
+                        <small style="color: rgba(255,255,255,0.7);">Supported: PDF, Doc, Audio, Video</small>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="course-select">Associated Course (Optional)</label>
+                        <select id="course-select" name="course_id">
+                            <option value="">No specific course</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="is-free" name="is_free" checked>
+                            Make this material free for all students
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="closeCreateModal()">Cancel</button>
+                        <button type="submit" class="success">Upload Material</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Material Modal -->
+        <div class="modal" id="edit-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Edit Material</h2>
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id" name="id">
+                    <div class="form-group">
+                        <label for="edit-title">Title *</label>
+                        <input type="text" id="edit-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Description</label>
+                        <textarea id="edit-description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <!-- Upload Type Toggle for Edit -->
+                    <div class="form-group">
+                        <label>Source Type</label>
+                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="edit_upload_source" value="url" checked
+                                    onchange="toggleUploadType(this.value, 'edit')">
+                                External URL
+                            </label>
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="edit_upload_source" value="file"
+                                    onchange="toggleUploadType(this.value, 'edit')">
+                                Upload New File
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="edit-url-group">
+                        <label for="edit-file-url">File URL or Link *</label>
+                        <input type="text" id="edit-file-url" name="file_url">
+                    </div>
+
+                    <div class="form-group" id="edit-file-group" style="display: none;">
+                        <label for="edit-file-upload">Upload New File</label>
+                        <input type="file" id="edit-file-upload" name="file">
+                        <small style="color: rgba(255,255,255,0.7);">Leave empty to keep existing file</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-is-free" name="is_free">
+                            Free for all students
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="success">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        // Toggle input helper
+        function toggleUploadType(type, mode) {
+            if (mode === 'create') {
+                if (type === 'url') {
+                    document.getElementById('create-url-group').style.display = 'block';
+                    document.getElementById('create-file-group').style.display = 'none';
+                    document.getElementById('file-url').required = true;
+                } else {
+                    document.getElementById('create-url-group').style.display = 'none';
+                    document.getElementById('create-file-group').style.display = 'block';
+                    document.getElementById('file-url').required = false;
+                }
+            } else {
+                if (type === 'url') {
+                    document.getElementById('edit-url-group').style.display = 'block';
+                    document.getElementById('edit-file-group').style.display = 'none';
+                } else {
+                    document.getElementById('edit-url-group').style.display = 'none';
+                    document.getElementById('edit-file-group').style.display = 'block';
+                }
+            }
+        }
+
+        async function loadMaterials() {
+            try {
+                const materials = await api('/api/admin/ielts/materials');
+                const tbody = document.getElementById('materials-table');
+
+                if (!materials || materials.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No materials found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = materials.map(mat => `
+          <tr>
+            <td>${mat.id}</td>
+            <td>${mat.title}</td>
+            <td><span class="badge info">${mat.material_type}</span></td>
+            <td>${mat.course_name || 'General'}</td>
+            <td>${mat.is_free ? '<span class="badge success">Free</span>' : '<span class="badge warning">Paid</span>'}</td>
+            <td><a href="${mat.file_url}" target="_blank" style="color: #60A5FA;">View</a></td>
+            <td>
+              <button onclick="openEditModal(${mat.id}, '${(mat.title || '').replace(/'/g, "\\'")}', '${(mat.description || '').replace(/'/g, "\\'")}', '${mat.file_url}', ${mat.is_free})" style="margin-right: 8px;">Edit</button>
+              <button class="danger" onclick="deleteMaterial(${mat.id}, '${(mat.title || '').replace(/'/g, "\\'")}')">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+
+            } catch (error) {
+                showAlert('Failed to load materials: ' + error.message, 'error');
+            }
+        }
+
+        // Load courses for dropdown
+        async function loadCourses() {
+            try {
+                const courses = await api('/api/admin/ielts/courses');
+                const select = document.getElementById('course-select');
+                select.innerHTML = '<option value="">No specific course</option>' +
+                    courses.map(c => `<option value="${c.id}">${c.batch_name}</option>`).join('');
+            } catch (error) {
+                console.error('Failed to load courses:', error);
+            }
+        }
+
+        // Create Modal
+        function openCreateModal() {
+            document.getElementById('create-modal').style.display = 'flex';
+            loadCourses();
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').style.display = 'none';
+            document.getElementById('create-form').reset();
+            toggleUploadType('url', 'create'); // Reset to default
+        }
+
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            // Checkboxes need manual handling if using FormData directly from form? 
+            // Actually FormData captures 'on' if checked. We need true/false or 1/0 for backend sometimes
+            // But let's check what backend expects. Backend: is_free? 1 : 0.
+            // FormData will have 'is_free' = 'on' if checked.
+
+            // However, our API helper usually takes JSON. We need to construct FormData manually or pass it?
+            // The existing `api` function likely expects JSON and does headers automatically. 
+            // We need to bypass `api` helper or modify it if we want to send FormData.
+            // Let's check layout.js for `api` implementation. Assuming it sets Content-Type to application/json.
+            // Since we can't see layout.js right now, it's safer to use fetch directly or assume we need to handle it.
+
+            // Let's assume standard fetch for file upload
+            const token = localStorage.getItem('token');
+
+            // Prepare data
+            // Backend expects: title, description, material_type, file_url (if text), course_id, is_free
+            // If file uploaded, file_url is ignored/overwritten by backend logic.
+
+            // If checkbox is unchecked, it won't be in FormData.
+            if (!formData.has('is_free')) {
+                formData.append('is_free', '0');
+            } else {
+                formData.set('is_free', '1'); // Convert 'on' to '1'
+            }
+
+            try {
+                const response = await fetch('/api/admin/ielts/materials/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // Do NOT set Content-Type, let browser set it with boundary
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Upload failed');
+                }
+
+                showAlert('Material uploaded successfully!', 'success');
+                closeCreateModal();
+                loadMaterials();
+            } catch (error) {
+                showAlert('Failed to upload material: ' + error.message, 'error');
+            }
+        });
+
+        // Edit Modal
+        function openEditModal(id, title, description, fileUrl, isFree) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-description').value = description;
+
+            // Determine if it looks like a local file
+            if (fileUrl && fileUrl.startsWith('/uploads/')) {
+                // Preselect File (optional functionality, but keeping URL as default is safer unless we want to replace)
+                // Let's keep URL default but show the current path
+                document.getElementById('edit-file-url').value = fileUrl;
+            } else {
+                document.getElementById('edit-file-url').value = fileUrl;
+            }
+
+            document.getElementById('edit-is-free').checked = isFree;
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            document.getElementById('edit-form').reset();
+            toggleUploadType('url', 'edit');
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = formData.get('id');
+
+            if (!formData.has('is_free')) {
+                formData.append('is_free', '0');
+            } else {
+                formData.set('is_free', '1');
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/admin/ielts/materials/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Update failed');
+                }
+
+                showAlert('Material updated successfully!', 'success');
+                closeEditModal();
+                loadMaterials();
+            } catch (error) {
+                showAlert('Failed to update material: ' + error.message, 'error');
+            }
+        });
+
+        // Delete Material
+        async function deleteMaterial(id, title) {
+            if (!confirm(`Are you sure you want to delete "${title}"?`)) {
+                return;
+            }
+
+            try {
+                await api(`/api/admin/ielts/materials/${id}`, {
+                    method: 'DELETE'
+                });
+
+                showAlert('Material deleted successfully!', 'success');
+                loadMaterials();
+            } catch (error) {
+                showAlert('Failed to delete material: ' + error.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMaterials);
+    </script>
+</body>
+
+</html>

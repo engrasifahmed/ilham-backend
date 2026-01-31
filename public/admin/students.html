@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="toast.css">
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Students & Guardians Management</h1>
+
+    <button class="success" onclick="openCreateModal()" style="margin-bottom: 24px;">
+      + Create New Student
+    </button>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Guardian</th>
+            <th>Guardian Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="students-table">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px;">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Create Student Modal -->
+    <div class="modal" id="create-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Create New Student</h2>
+        <form id="create-form">
+          <div class="form-group">
+            <label for="full-name">Full Name *</label>
+            <input type="text" id="full-name" name="full_name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone">
+          </div>
+          <div class="form-group">
+            <label for="passport-no">Passport No</label>
+            <input type="text" id="passport-no" name="passport_no">
+          </div>
+          <div class="form-group">
+            <label for="nationality">Nationality</label>
+            <input type="text" id="nationality" name="nationality">
+          </div>
+          <div class="form-group">
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <div class="form-group">
+            <label for="guardian-name">Guardian Name</label>
+            <input type="text" id="guardian-name" name="guardian_name">
+          </div>
+          <div class="form-group">
+            <label for="guardian-phone">Guardian Phone</label>
+            <input type="tel" id="guardian-phone" name="guardian_phone">
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeCreateModal()">Cancel</button>
+            <button type="submit" class="success">Create Student</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal" id="edit-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Edit Student</h2>
+        <form id="edit-form">
+          <input type="hidden" id="edit-id" name="id">
+          <div class="form-group">
+            <label for="edit-full-name">Full Name *</label>
+            <input type="text" id="edit-full-name" name="full_name" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-email">Email *</label>
+            <input type="email" id="edit-email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-phone">Phone</label>
+            <input type="tel" id="edit-phone" name="phone">
+          </div>
+          <div class="form-group">
+            <label for="edit-guardian-name">Guardian Name</label>
+            <input type="text" id="edit-guardian-name" name="guardian_name">
+          </div>
+          <div class="form-group">
+            <label for="edit-guardian-phone">Guardian Phone</label>
+            <input type="tel" id="edit-guardian-phone" name="guardian_phone">
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeEditModal()">Cancel</button>
+            <button type="submit" class="success">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="toast.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    async function loadStudents() {
+      try {
+        const students = await api('/api/admin/students');
+        const tbody = document.getElementById('students-table');
+
+        if (!students || students.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No students found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = students.map(s => `
+          <tr>
+            <td>${s.id}</td>
+            <td>${s.full_name}</td>
+            <td>${s.email || 'N/A'}</td>
+            <td>${s.phone || 'N/A'}</td>
+            <td>${s.nationality || 'N/A'}</td>
+            <td>
+              <button onclick="window.location.href='student-profile.html?id=${s.id}'" class="info" style="margin-right: 8px;">View Profile</button>
+              <button onclick="openEditModal(${s.id}, '${(s.full_name || '').replace(/'/g, "\\'")}', '${s.email || ''}', '${s.phone || ''}', '${s.passport_no || ''}', '${s.nationality || ''}')">Edit</button>
+              <button class="danger" onclick="deleteStudent(${s.id}, '${(s.full_name || '').replace(/'/g, "\\'")}')">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+
+      } catch (error) {
+        showAlert('Failed to load students: ' + error.message, 'error');
+      }
+    }
+
+    // Create Modal
+    function openCreateModal() {
+      document.getElementById('create-modal').style.display = 'flex';
+    }
+
+    function closeCreateModal() {
+      document.getElementById('create-modal').style.display = 'none';
+      document.getElementById('create-form').reset();
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        await api('/api/admin/students/create', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+
+        showAlert('Student created successfully!', 'success');
+        closeCreateModal();
+        loadStudents();
+      } catch (error) {
+        showAlert('Failed to create student: ' + error.message, 'error');
+      }
+    });
+
+    // Edit Modal
+    function openEditModal(id, fullName, email, phone, guardianName, guardianPhone) {
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-full-name').value = fullName;
+      document.getElementById('edit-email').value = email;
+      document.getElementById('edit-phone').value = phone;
+      document.getElementById('edit-guardian-name').value = guardianName;
+      document.getElementById('edit-guardian-phone').value = guardianPhone;
+      document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').style.display = 'none';
+      document.getElementById('edit-form').reset();
+    }
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const id = formData.get('id');
+      const data = Object.fromEntries(formData.entries());
+      delete data.id;
+
+      try {
+        await api(`/api/admin/students/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+
+        showAlert('Student updated successfully!', 'success');
+        closeEditModal();
+        loadStudents();
+      } catch (error) {
+        showAlert('Failed to update student: ' + error.message, 'error');
+      }
+    });
+
+    // Delete Student
+    async function deleteStudent(id, name) {
+      if (!confirm(`Are you sure you want to delete ${name}? This will also delete all related applications, invoices, and data.`)) {
+        return;
+      }
+
+      try {
+        await api(`/api/admin/students/${id}`, {
+          method: 'DELETE'
+        });
+
+        showAlert('Student deleted successfully!', 'success');
+        loadStudents();
+      } catch (error) {
+        showAlert('Failed to delete student: ' + error.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStudents);
+  </script>
+</body>
+
+</html>

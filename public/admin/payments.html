@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Payments Management</h1>
+
+    <button class="success" onclick="openRecordModal()" style="margin-bottom: 24px;">
+      + Record New Payment
+    </button>
+
+    <div class="card metric" style="text-align: center; max-width: 400px; margin: 0 auto 32px;">
+      <h3>Total Revenue</h3>
+      <p id="total-revenue" style="font-size: 48px;">-</p>
+    </div>
+
+    <div class="card">
+      <h2>All Payments</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Invoice ID</th>
+            <th>Student</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Payment Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="payments-table">
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px;">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Record Payment Modal -->
+    <div class="modal" id="record-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Record New Payment</h2>
+        <form id="record-form">
+          <div class="form-group">
+            <label for="invoice-select">Select Invoice *</label>
+            <select id="invoice-select" name="invoice_id" required>
+              <option value="">Loading unpaid invoices...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Amount *</label>
+            <input type="number" id="amount" name="amount" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="method">Payment Method *</label>
+            <select id="method" name="method" required>
+              <option value="">Select method...</option>
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Online Payment">Online Payment</option>
+              <option value="Check">Check</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="payment-date">Payment Date *</label>
+            <input type="date" id="payment-date" name="payment_date" required>
+          </div>
+          <div class="form-group">
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Add any notes..."></textarea>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeRecordModal()">Cancel</button>
+            <button type="submit" class="success">Record Payment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Update Payment Modal -->
+    <div class="modal" id="update-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Update Payment Status</h2>
+        <form id="update-form">
+          <input type="hidden" id="update-payment-id" name="id">
+          <div class="form-group">
+            <label for="update-status">Status *</label>
+            <select id="update-status" name="status" required>
+              <option value="Pending">Pending</option>
+              <option value="Completed">Completed</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="update-notes">Notes</label>
+            <textarea id="update-notes" name="notes" rows="3"></textarea>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeUpdateModal()">Cancel</button>
+            <button type="submit" class="success">Update Status</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="layout.js"></script>
+  <script>
+    async function loadPayments() {
+      try {
+        const payments = await api('/api/admin/payments');
+        const tbody = document.getElementById('payments-table');
+
+        if (!payments || payments.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No payments found</td></tr>';
+          document.getElementById('total-revenue').textContent = formatCurrency(0);
+          return;
+        }
+
+        // Calculate total revenue
+        const totalRevenue = payments.reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
+        document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
+
+        // Render payments table
+        tbody.innerHTML = payments.map(payment => {
+          const status = payment.status || 'Completed';
+          const statusClass = status === 'Completed' ? 'success' : status === 'Pending' ? 'warning' : 'danger';
+
+          return `
+          <tr>
+            <td>${payment.id}</td>
+            <td>${payment.invoice_id}</td>
+            <td>${payment.student_name || 'N/A'}</td>
+            <td>${formatCurrency(payment.amount)}</td>
+            <td>
+              <span class="badge info">${payment.method || 'N/A'}</span>
+            </td>
+            <td>
+              <span class="badge ${statusClass}">${status}</span>
+            </td>
+            <td>${formatDate(payment.payment_date)}</td>
+            <td>
+              <button onclick="openUpdateModal(${payment.id}, '${status}', '${(payment.notes || '').replace(/'/g, "\\'")}')" style="font-size: 12px;">Update</button>
+            </td>
+          </tr>
+        `}).join('');
+
+      } catch (error) {
+        showAlert('Failed to load payments: ' + error.message, 'error');
+      }
+    }
+
+    // Record Payment Modal
+    async function openRecordModal() {
+      const modal = document.getElementById('record-modal');
+      modal.style.display = 'flex';
+
+      // Set today's date as default
+      document.getElementById('payment-date').valueAsDate = new Date();
+
+      // Load unpaid invoices
+      try {
+        const invoices = await api('/api/admin/invoices');
+        const unpaidInvoices = invoices.filter(inv => inv.status === 'Unpaid');
+
+        const select = document.getElementById('invoice-select');
+        if (unpaidInvoices.length === 0) {
+          select.innerHTML = '<option value="">No unpaid invoices found</option>';
+        } else {
+          select.innerHTML = '<option value="">Select invoice...</option>' +
+            unpaidInvoices.map(inv =>
+              `<option value="${inv.id}">Invoice #${inv.id} - ${inv.student_name} - ${formatCurrency(inv.amount)}</option>`
+            ).join('');
+        }
+      } catch (error) {
+        showAlert('Failed to load invoices: ' + error.message, 'error');
+      }
+    }
+
+    function closeRecordModal() {
+      document.getElementById('record-modal').style.display = 'none';
+      document.getElementById('record-form').reset();
+    }
+
+    document.getElementById('record-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        await api('/api/billing/payment', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+
+        showAlert('Payment recorded successfully!', 'success');
+        closeRecordModal();
+        loadPayments();
+      } catch (error) {
+        showAlert('Failed to record payment: ' + error.message, 'error');
+      }
+    });
+
+    // Update Payment Modal
+    function openUpdateModal(id, status, notes) {
+      document.getElementById('update-payment-id').value = id;
+      document.getElementById('update-status').value = status;
+      document.getElementById('update-notes').value = notes;
+      document.getElementById('update-modal').style.display = 'flex';
+    }
+
+    function closeUpdateModal() {
+      document.getElementById('update-modal').style.display = 'none';
+      document.getElementById('update-form').reset();
+    }
+
+    document.getElementById('update-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const id = formData.get('id');
+      const data = {
+        status: formData.get('status'),
+        notes: formData.get('notes')
+      };
+
+      try {
+        await api(`/api/admin/payments/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+
+        showAlert('Payment updated successfully!', 'success');
+        closeUpdateModal();
+        loadPayments();
+      } catch (error) {
+        showAlert('Failed to update payment: ' + error.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadPayments);
+  </script>
+</body>
+
+</html>

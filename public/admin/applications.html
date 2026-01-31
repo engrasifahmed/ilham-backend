@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applications - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Applications Management</h1>
+
+    <button class="success" onclick="openCreateModal()" style="margin-bottom: 24px;">
+      + Create Application for Student
+    </button>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Student</th>
+            <th>University</th>
+            <th>Country</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="applications-table">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px;">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Create Application Modal -->
+    <div class="modal" id="create-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Create Application for Student</h2>
+        <form id="create-form">
+          <div class="form-group">
+            <label for="student-select">Select Student *</label>
+            <select id="student-select" name="student_id" required>
+              <option value="">Loading students...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="university-select">Select University *</label>
+            <select id="university-select" name="university_id" required>
+              <option value="">Loading universities...</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeCreateModal()">Cancel</button>
+            <button type="submit" class="success">Create Application</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Application Modal -->
+    <div class="modal" id="edit-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Edit Application</h2>
+        <form id="edit-form">
+          <input type="hidden" id="edit-app-id" name="id">
+          <div class="form-group">
+            <label for="edit-university-select">University *</label>
+            <select id="edit-university-select" name="university_id" required>
+              <option value="">Loading universities...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-status-select">Status *</label>
+            <select id="edit-status-select" name="status" required>
+              <option value="Applied">Applied</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-counselor-remark">Counselor Remark (Optional)</label>
+            <textarea id="edit-counselor-remark" name="counselor_remark" rows="3"
+              placeholder="Add notes about this status change..."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeEditModal()">Cancel</button>
+            <button type="submit" class="success">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="layout.js"></script>
+  <script>
+    async function loadApplications() {
+      try {
+        const applications = await api('/api/admin/applications');
+        const tbody = document.getElementById('applications-table');
+
+        if (!applications || applications.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No applications found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = applications.map(app => `
+          <tr id="row-${app.id}">
+            <td>${app.id}</td>
+            <td>${app.student_name || 'N/A'}</td>
+            <td>${app.university_name || 'N/A'}</td>
+            <td>${app.university_country || 'N/A'}</td>
+            <td>${getStatusBadge(app.status)}</td>
+            <td>${formatDate(app.created_at)}</td>
+            <td>
+              <button onclick="openEditModal(${app.id}, ${app.university_id}, '${app.status}')">Edit</button>
+              ${app.status === 'Applied' ? `
+                <button class="success" onclick="updateStatus(${app.id}, 'Approved')">Quick Approve</button>
+                <button class="danger" onclick="updateStatus(${app.id}, 'Rejected')">Quick Reject</button>
+              ` : ''}
+            </td>
+          </tr>
+        `).join('');
+
+      } catch (error) {
+        showAlert('Failed to load applications: ' + error.message, 'error');
+      }
+    }
+
+    async function updateStatus(applicationId, status) {
+      if (!confirm(`Are you sure you want to ${status.toLowerCase()} this application?`)) {
+        return;
+      }
+
+      try {
+        await api('/api/applications/status', {
+          method: 'POST',
+          body: JSON.stringify({
+            application_id: applicationId,
+            status: status,
+            counselor_remark: `${status} by admin`
+          })
+        });
+
+        showAlert(`Application ${status.toLowerCase()} successfully!`, 'success');
+
+        // Update the row without reloading
+        const row = document.getElementById(`row-${applicationId}`);
+        if (row) {
+          const statusCell = row.children[4];
+          const actionsCell = row.children[6];
+          statusCell.innerHTML = getStatusBadge(status);
+          actionsCell.innerHTML = `<span style="color: var(--text-muted); font-size: 12px;">${status}</span>`;
+        }
+
+      } catch (error) {
+        showAlert('Failed to update application: ' + error.message, 'error');
+      }
+    }
+
+    // Modal functions
+    async function openCreateModal() {
+      const modal = document.getElementById('create-modal');
+      modal.style.display = 'flex';
+
+      // Load students and universities
+      await loadStudentsAndUniversities();
+    }
+
+    function closeCreateModal() {
+      const modal = document.getElementById('create-modal');
+      modal.style.display = 'none';
+      document.getElementById('create-form').reset();
+    }
+
+    async function loadStudentsAndUniversities() {
+      try {
+        // Load students
+        const students = await api('/api/admin/students/list');
+        const studentSelect = document.getElementById('student-select');
+        studentSelect.innerHTML = '<option value="">Select Student...</option>' +
+          students.map(s => `<option value="${s.id}">${s.full_name}</option>`).join('');
+
+        // Load universities
+        const universities = await api('/api/admin/universities/list');
+        const universitySelect = document.getElementById('university-select');
+        universitySelect.innerHTML = '<option value="">Select University...</option>' +
+          universities.map(u => `<option value="${u.id}">${u.name} - ${u.country}</option>`).join('');
+
+      } catch (error) {
+        showAlert('Failed to load options: ' + error.message, 'error');
+      }
+    }
+
+    // Handle create form submission
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const data = {
+        student_id: parseInt(formData.get('student_id')),
+        university_id: parseInt(formData.get('university_id'))
+      };
+
+      try {
+        await api('/api/admin/applications/create', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+
+        showAlert('Application created successfully!', 'success');
+        closeCreateModal();
+        loadApplications(); // Reload table
+
+      } catch (error) {
+        showAlert('Failed to create application: ' + error.message, 'error');
+      }
+    });
+
+    // Edit modal functions
+    async function openEditModal(appId, universityId, status) {
+      const modal = document.getElementById('edit-modal');
+      modal.style.display = 'flex';
+
+      // Set form values
+      document.getElementById('edit-app-id').value = appId;
+      document.getElementById('edit-status-select').value = status;
+
+      // Load universities
+      const universities = await api('/api/admin/universities/list');
+      const universitySelect = document.getElementById('edit-university-select');
+      universitySelect.innerHTML = universities.map(u =>
+        `<option value="${u.id}" ${u.id === universityId ? 'selected' : ''}>${u.name} - ${u.country}</option>`
+      ).join('');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.style.display = 'none';
+      document.getElementById('edit-form').reset();
+    }
+
+    // Handle edit form submission
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const appId = formData.get('id');
+      const data = {
+        university_id: parseInt(formData.get('university_id')),
+        status: formData.get('status'),
+        counselor_remark: formData.get('counselor_remark') || null
+      };
+
+      try {
+        await api(`/api/admin/applications/${appId}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+
+        showAlert('Application updated successfully!', 'success');
+        closeEditModal();
+        loadApplications(); // Reload table
+
+      } catch (error) {
+        showAlert('Failed to update application: ' + error.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadApplications);
+  </script>
+</body>
+
+</html>

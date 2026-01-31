@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminders - ILHAM Admin</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="table-fix.css">
+</head>
+
+<body>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <h1>Reminders Management</h1>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Student</th>
+            <th>Title</th>
+            <th>Note</th>
+            <th>Reminder Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reminders-table">
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="layout.js"></script>
+  <script>
+    async function loadReminders() {
+      try {
+        const reminders = await api('/api/reminders');
+        const tbody = document.getElementById('reminders-table');
+
+        if (!reminders || reminders.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No reminders found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = reminders.map(reminder => `
+          <tr>
+            <td>${reminder.id}</td>
+            <td>${reminder.student_name || 'N/A'}</td>
+            <td>${reminder.title || 'N/A'}</td>
+            <td>${reminder.note || 'N/A'}</td>
+            <td>${formatDate(reminder.remind_date)}</td>
+            <td>
+              <button class="warning" onclick="pushReminder(${reminder.student_id}, '${(reminder.note || '').replace(/'/g, "\\'")}')">
+                Push Notification
+              </button>
+            </td>
+          </tr>
+        `).join('');
+
+      } catch (error) {
+        showAlert('Failed to load reminders: ' + error.message, 'error');
+      }
+    }
+
+    async function pushReminder(studentId, note) {
+      if (!confirm('Push this reminder as a notification to the student?')) {
+        return;
+      }
+
+      try {
+        await api('/api/reminders/push', {
+          method: 'POST',
+          body: JSON.stringify({
+            student_id: studentId,
+            note: note || 'Reminder notification'
+          })
+        });
+
+        showAlert('Reminder notification pushed successfully!', 'success');
+
+      } catch (error) {
+        showAlert('Failed to push reminder: ' + error.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReminders);
+  </script>
+</body>
+
+</html>

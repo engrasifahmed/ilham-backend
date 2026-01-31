@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universities - ILHAM Admin</title>
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="table-fix.css">
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container">
+        <h1>Universities Management</h1>
+
+        <button class="success" onclick="openCreateModal()" style="margin-bottom: 24px;">
+            + Add New University
+        </button>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>IELTS Requirements</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="universities-table">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            <div class="spinner"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Create University Modal -->
+        <div class="modal" id="create-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Add New University</h2>
+                <form id="create-form">
+                    <div class="form-group">
+                        <label for="name">University Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="e.g., University of Toronto">
+                    </div>
+                    <div class="form-group">
+                        <label for="country">Country *</label>
+                        <input type="text" id="country" name="country" required placeholder="e.g., Canada">
+                    </div>
+                    <div class="form-group">
+                        <label for="requirements">IELTS Requirements *</label>
+                        <input type="text" id="requirements" name="requirements" required
+                            placeholder="e.g., IELTS 6.5 or IELTS 7.0">
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="closeCreateModal()">Cancel</button>
+                        <button type="submit" class="success">Add University</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit University Modal -->
+        <div class="modal" id="edit-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Edit University</h2>
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id" name="id">
+                    <div class="form-group">
+                        <label for="edit-name">University Name *</label>
+                        <input type="text" id="edit-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-country">Country *</label>
+                        <input type="text" id="edit-country" name="country" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-requirements">IELTS Requirements *</label>
+                        <input type="text" id="edit-requirements" name="requirements" required>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="success">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        async function loadUniversities() {
+            try {
+                const universities = await api('/api/admin/universities');
+                const tbody = document.getElementById('universities-table');
+
+                if (!universities || universities.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No universities found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = universities.map(uni => `
+          <tr>
+            <td>${uni.id}</td>
+            <td>${uni.name}</td>
+            <td>${uni.country}</td>
+            <td><span class="badge info">${uni.requirements || 'Not specified'}</span></td>
+            <td>
+              <button onclick="openEditModal(${uni.id}, '${(uni.name || '').replace(/'/g, "\\'")}', '${(uni.country || '').replace(/'/g, "\\'")}', '${(uni.requirements || '').replace(/'/g, "\\'")}')">Edit</button>
+              <button class="danger" onclick="deleteUniversity(${uni.id}, '${(uni.name || '').replace(/'/g, "\\'")}')">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+
+            } catch (error) {
+                showAlert('Failed to load universities: ' + error.message, 'error');
+            }
+        }
+
+        // Create Modal
+        function openCreateModal() {
+            document.getElementById('create-modal').style.display = 'flex';
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').style.display = 'none';
+            document.getElementById('create-form').reset();
+        }
+
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name'),
+                country: formData.get('country'),
+                requirements: formData.get('requirements')
+            };
+
+            try {
+                await api('/api/admin/universities/create', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                showAlert('University added successfully!', 'success');
+                closeCreateModal();
+                loadUniversities();
+            } catch (error) {
+                showAlert('Failed to add university: ' + error.message, 'error');
+            }
+        });
+
+        // Edit Modal
+        function openEditModal(id, name, country, requirements) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-country').value = country;
+            document.getElementById('edit-requirements').value = requirements;
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            document.getElementById('edit-form').reset();
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = formData.get('id');
+            const data = {
+                name: formData.get('name'),
+                country: formData.get('country'),
+                requirements: formData.get('requirements')
+            };
+
+            try {
+                await api(`/api/admin/universities/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+
+                showAlert('University updated successfully!', 'success');
+                closeEditModal();
+                loadUniversities();
+            } catch (error) {
+                showAlert('Failed to update university: ' + error.message, 'error');
+            }
+        });
+
+        // Delete University
+        async function deleteUniversity(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+                return;
+            }
+
+            try {
+                await api(`/api/admin/universities/${id}`, {
+                    method: 'DELETE'
+                });
+
+                showAlert('University deleted successfully!', 'success');
+                loadUniversities();
+            } catch (error) {
+                showAlert('Failed to delete university: ' + error.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUniversities);
+    </script>
+</body>
+
+</html>
