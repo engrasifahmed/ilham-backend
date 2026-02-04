@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Content Management - ILHAM Admin</title>
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="../css/toast.css">
+    <style>
+        /* SITE MANAGEMENT SPECIFIC STYLES */
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            /* Very subtle */
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid transparent;
+            /* Prevent layout shift */
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            /* Tab shape */
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            margin-bottom: -1px;
+            /* Overlap border */
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--accent-blue);
+            font-weight: 600;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Tip Box */
+        .tip {
+            background: rgba(91, 163, 245, 0.15);
+            /* Accent Blue low opacity */
+            border-left: 4px solid var(--accent-blue);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #dbeafe;
+            /* Light blue text */
+        }
+
+        /* Header Actions */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        /* Form Controls Overrides (Just in case layout.css misses something specific) */
+        textarea.form-control {
+            width: 100%;
+            min-height: 120px;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        input.form-control {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        label {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1>Site Content Management</h1>
+                <p style="color: rgba(255,255,255,0.7); margin-top: -20px; margin-bottom: 0;">Manage dynamic content for
+                    your public website.</p>
+            </div>
+            <button onclick="saveChanges()" class="success">
+                <span id="save-icon">💾</span> Save Changes
+            </button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('landing')">Landing Page</button>
+            <button class="tab-btn" onclick="switchTab('services')">Services & Programs</button>
+            <button class="tab-btn" onclick="switchTab('pages')">Info Pages</button>
+            <button class="tab-btn" onclick="switchTab('contact')">Contact Info</button>
+        </div>
+
+        <!-- TAB 1: LANDING PAGE -->
+        <div id="landing" class="content-section active">
+            <div class="card">
+                <h3>Hero Section</h3>
+                <div class="tip">This is the first thing visitors see. Keep it catchy!</div>
+                <div class="form-group">
+                    <label>Main Headline</label>
+                    <input type="text" id="hero_title" class="form-control"
+                        placeholder="e.g. Your Gateway to Global Education">
+                </div>
+                <div class="form-group">
+                    <label>Subtitle / Tagline</label>
+                    <textarea id="hero_subtitle" class="form-control" rows="2"
+                        placeholder="Short description below the headline"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>About Section (Home Preview)</h3>
+                <div class="form-group">
+                    <label>Mission Statement</label>
+                    <textarea id="about_mission" class="form-control" rows="3"
+                        placeholder="Brief mission statement shown on homepage"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: SERVICES & PROGRAMS -->
+        <div id="services" class="content-section">
+            <div class="card">
+                <h3>Study Abroad Page</h3>
+                <div class="tip">Content for <b>/page.html?section=study_abroad</b>. HTML is allowed for rich
+                    formatting.</div>
+                <div class="form-group">
+                    <label>Page Content <small>(HTML Allowed)</small></label>
+                    <textarea id="study_abroad" class="form-control"
+                        style="min-height: 300px; font-family: monospace;"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>IELTS Preparation Page</h3>
+                <div class="tip">Content for <b>/page.html?section=ielts_prep</b>. HTML is allowed.</div>
+                <div class="form-group">
+                    <label>Page Content <small>(HTML Allowed)</small></label>
+                    <textarea id="ielts_prep" class="form-control"
+                        style="min-height: 300px; font-family: monospace;"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: INFO PAGES -->
+        <div id="pages" class="content-section">
+            <div class="card">
+                <h3>Eligibility Requirements</h3>
+                <div class="form-group">
+                    <label>Requirements Text <small>(HTML Allowed)</small></label>
+                    <textarea id="eligibility" class="form-control" style="min-height: 200px;"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>FAQ (Frequently Asked Questions)</h3>
+                <div class="form-group">
+                    <label>FAQ Content <small>(HTML Allowed)</small></label>
+                    <textarea id="faq" class="form-control" style="min-height: 300px;"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CONTACT INFO -->
+        <div id="contact" class="content-section">
+            <div class="card">
+                <h3>Contact Details</h3>
+                <div class="tip">These update the footer and contact page instantly.</div>
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                    <div class="form-group">
+                        <label>Physical Address</label>
+                        <input type="text" id="contact_address" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="contact_email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="contact_phone" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="layout.js"></script>
+    <script src="../js/toast.js"></script>
+
+    <script>
+        const API_URL = '/api';
+        const FIELD_IDS = [
+            'hero_title', 'hero_subtitle', 'about_mission',
+            'study_abroad', 'ielts_prep',
+            'eligibility', 'faq',
+            'contact_address', 'contact_email', 'contact_phone'
+        ];
+
+        // Tabs Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function loadContent() {
+            try {
+                // Show loading state if desired
+                const res = await fetch(`${API_URL}/public/content`);
+                const content = await res.json();
+
+                FIELD_IDS.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && content[id]) el.value = content[id];
+                });
+            } catch (error) {
+                console.error("Load Error:", error);
+                if (window.showToast) showToast("Failed to load content", "error");
+            }
+        }
+
+        async function saveChanges() {
+            const btn = document.querySelector('button.success');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Saving...';
+            btn.disabled = true;
+
+            const data = {};
+            FIELD_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+
+            try {
+                const token = localStorage.getItem('admin_token');
+                const res = await fetch(`${API_URL}/admin/content`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    if (window.showToast) showToast("Website updated successfully!", "success");
+                    else alert("Saved!");
+                } else {
+                    throw new Error("Save failed");
+                }
+            } catch (error) {
+                console.error("Save Error:", error);
+                alert("Error saving. Please check your connection.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadContent);
+    </script>
+</body>
+
+</html>

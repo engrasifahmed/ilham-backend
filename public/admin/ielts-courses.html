@@ -63,6 +63,26 @@
                         <label for="end-date">End Date *</label>
                         <input type="date" id="end-date" name="end_date" required>
                     </div>
+                    <!-- New Fields -->
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" rows="3" placeholder="Course details..."></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Duration</label>
+                            <input type="text" name="duration" placeholder="e.g. 8 weeks">
+                        </div>
+                        <div class="form-group">
+                            <label>Schedule</label>
+                            <input type="text" name="schedule" placeholder="e.g. Flexible">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Price (RM)</label>
+                        <input type="number" name="price" step="0.01" placeholder="0.00">
+                    </div>
+
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button type="button" onclick="closeCreateModal()">Cancel</button>
                         <button type="submit" class="success">Create Course</button>
@@ -93,6 +113,26 @@
                         <label for="edit-end-date">End Date *</label>
                         <input type="date" id="edit-end-date" name="end_date" required>
                     </div>
+                    <!-- New Fields for Edit -->
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="edit-description" name="description" rows="3"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Duration</label>
+                            <input type="text" id="edit-duration" name="duration">
+                        </div>
+                        <div class="form-group">
+                            <label>Schedule</label>
+                            <input type="text" id="edit-schedule" name="schedule">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Price (RM)</label>
+                        <input type="number" id="edit-price" name="price" step="0.01">
+                    </div>
+
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button type="button" onclick="closeEditModal()">Cancel</button>
                         <button type="submit" class="success">Save Changes</button>
@@ -104,17 +144,20 @@
 
     <script src="layout.js"></script>
     <script>
+        let allCourses = [];
+
         async function loadCourses() {
             try {
                 const courses = await api('/api/admin/ielts/courses');
+                allCourses = courses || [];
                 const tbody = document.getElementById('courses-table');
 
-                if (!courses || courses.length === 0) {
+                if (!allCourses || allCourses.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No courses found</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = courses.map(course => {
+                tbody.innerHTML = allCourses.map(course => {
                     const startDate = new Date(course.start_date);
                     const endDate = new Date(course.end_date);
                     const now = new Date();
@@ -138,7 +181,7 @@
             <td>${formatDate(course.end_date)}</td>
             <td><span class="badge ${statusClass}">${status}</span></td>
             <td>
-              <button onclick="openEditModal(${course.id}, '${(course.batch_name || '').replace(/'/g, "\\'")}', '${(course.instructor || '').replace(/'/g, "\\'")}', '${course.start_date}', '${course.end_date}')" style="margin-right: 8px;">Edit</button>
+              <button onclick="openEditModal(${course.id})" style="margin-right: 8px;">Edit</button>
               <button class="danger" onclick="deleteCourse(${course.id}, '${(course.batch_name || '').replace(/'/g, "\\'")}')">Delete</button>
             </td>
           </tr>
@@ -167,6 +210,7 @@
             try {
                 await api('/api/admin/ielts/courses/create', {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
@@ -179,12 +223,22 @@
         });
 
         // Edit Modal
-        function openEditModal(id, batchName, instructor, startDate, endDate) {
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-batch-name').value = batchName;
-            document.getElementById('edit-instructor').value = instructor;
-            document.getElementById('edit-start-date').value = startDate.split('T')[0];
-            document.getElementById('edit-end-date').value = endDate.split('T')[0];
+        function openEditModal(id) {
+            const course = allCourses.find(c => c.id === id);
+            if (!course) return;
+
+            document.getElementById('edit-id').value = course.id;
+            document.getElementById('edit-batch-name').value = course.batch_name;
+            document.getElementById('edit-instructor').value = course.instructor;
+            document.getElementById('edit-start-date').value = course.start_date ? course.start_date.split('T')[0] : '';
+            document.getElementById('edit-end-date').value = course.end_date ? course.end_date.split('T')[0] : '';
+
+            // New Fields
+            document.getElementById('edit-description').value = course.description || '';
+            document.getElementById('edit-duration').value = course.duration || '';
+            document.getElementById('edit-schedule').value = course.schedule || '';
+            document.getElementById('edit-price').value = course.price || '';
+
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
@@ -203,6 +257,7 @@
             try {
                 await api(`/api/admin/ielts/courses/${id}`, {
                     method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 

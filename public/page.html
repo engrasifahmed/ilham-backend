@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilham Education Consultancy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 30px 0;
+            color: white;
+            text-align: center;
+            margin-top: 72px;
+            /* Header height */
+        }
+
+        .page-header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .page-content {
+            padding: 80px 0;
+            min-height: 50vh;
+        }
+
+        .page-content h2 {
+            color: var(--primary);
+            margin-bottom: 24px;
+            font-size: 28px;
+        }
+
+        .page-content ul {
+            padding-left: 20px;
+            margin-bottom: 24px;
+            list-style: disc;
+        }
+
+        .page-content li {
+            margin-bottom: 12px;
+        }
+
+        .page-content p {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: var(--text-main);
+            line-height: 1.8;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <img src="/Logo.png" alt="Ilham Education" style="height: 50px;">
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/#about">About Us</a></li>
+                <li>
+                    <a href="/#services">Services ▾</a>
+                    <ul class="dropdown">
+                        <li><a href="/page.html?section=study_abroad">Study Abroad Services</a></li>
+                        <li><a href="/page.html?section=ielts_prep">IELTS Preparation</a></li>
+                    </ul>
+                </li>
+                <li><a href="/#admission">Admission Process</a></li>
+                <li><a href="/page.html?section=eligibility">Eligibility</a></li>
+                <li><a href="/page.html?section=faq">FAQ</a></li>
+                <li><a href="/#contact">Contact Us</a></li>
+                <li><a href="/login.html" class="student-login-link">Student Panel</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+        </nav>
+    </header>
+
+    <!-- Mobile Sidebar -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close">&times;</button>
+        <ul class="sidebar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/#about">About Us</a></li>
+            <li><a href="/#services">Services</a></li>
+            <li><a href="/page.html?section=eligibility">Eligibility</a></li>
+            <li><a href="/page.html?section=faq">FAQ</a></li>
+            <li><a href="/#contact">Contact Us</a></li>
+            <li><a href="/login.html">Student Panel</a></li>
+        </ul>
+    </aside>
+
+    <!-- Dynamic Content -->
+    <div id="wrapper">
+        <div class="page-header">
+            <div class="container">
+                <h1 id="page-title">Loading...</h1>
+            </div>
+        </div>
+        <div class="section page-content">
+            <div class="container" id="dynamic-content">
+                <div class="spinner"
+                    style="border: 4px solid rgba(0,0,0,0.1); width: 48px; height: 48px; border-radius: 50%; border-left-color: white; animation: spin 1s linear infinite; margin: 0 auto; border-left-color: var(--primary);">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="/Logo.png" alt="Ilham Education"
+                        style="height: 48px; margin-bottom: 24px; filter: brightness(0) invert(1);">
+                    <p style="margin-bottom: 24px;">Empowering students worldwide to achieve their academic goals
+                        through expert guidance, personalized counseling, and a global network of partner universities.
+                    </p>
+                </div>
+                <!-- ... other footer sections same as index ... -->
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/#about">About Us</a></li>
+                        <li><a href="/login.html">Student Login</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2025 Ilham Education Consultancy. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/cms-loader.js"></script>
+    <script>
+        // Sidebar logic
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        document.getElementById('hamburger').addEventListener('click', () => { sidebar.classList.add('active'); overlay.classList.add('active'); });
+        document.getElementById('sidebar-close').addEventListener('click', () => { sidebar.classList.remove('active'); overlay.classList.remove('active'); });
+        overlay.addEventListener('click', () => { sidebar.classList.remove('active'); overlay.classList.remove('active'); });
+
+        // Content Loader
+        const params = new URLSearchParams(window.location.search);
+        const section = params.get('section');
+        const contentDiv = document.getElementById('dynamic-content');
+
+        if (section) {
+            // Capitalize title
+            const title = section.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            document.getElementById('page-title').textContent = title;
+
+            // SPECIAL HANDLING FOR UNIVERSITIES
+            if (section === 'universities') {
+                fetch('/api/public/universities')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            // Render Grid
+                            contentDiv.innerHTML = `
+                                <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+                                    ${data.map(uni => `
+                                        <div class="card university-card">
+                                            <div style="height: 120px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                                                🏛️
+                                            </div>
+                                            <h3>${uni.name}</h3>
+                                            <div class="badge-container">
+                                                <span class="badge" style="background: #E0F2FE; color: #0284C7;">${uni.country}</span>
+                                                <span class="badge" style="background: #DCFCE7; color: #16A34A;">IELTS: ${uni.ielts_requirement || 'N/A'}</span>
+                                            </div>
+                                            <button class="btn-primary" onclick="window.location.href='/login.html'">Apply Now</button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        } else {
+                            contentDiv.innerHTML = '<p style="text-align:center; color: var(--text-light);">No universities listed at the moment.</p>';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        contentDiv.innerHTML = '<p style="color:red; text-align:center;">Failed to load universities.</p>';
+                    });
+
+            } else {
+                // DEFAULT CMS CONTENT LOADING
+                fetch('/api/public/content')
+                    .then(r => r.json())
+                    .then(data => {
+                        const content = data[section];
+                        if (content) {
+                            contentDiv.innerHTML = content;
+                        } else {
+                            contentDiv.innerHTML = `
+                                <div style="text-align: center; padding: 40px; background: #F9FAFB; border-radius: 12px;">
+                                    <h3>Content Not Found</h3>
+                                    <p>The content for "${title}" has not been added yet.</p>
+                                    <p style="font-size: 0.9em; color: #6B7280; margin-top: 10px;">Admin: Go to <b>Site Management</b> to add this content.</p>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        contentDiv.innerHTML = '<p style="color:red; text-align:center;">Failed to load content. Please try again later.</p>';
+                    });
+            }
+        }
+    </script>
+</body>
+
+</html>

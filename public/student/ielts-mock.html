@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Mock Tests - ILHAM Education</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="layout.css">
+    <style>
+        .test-card {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            backdrop-filter: var(--blur-medium);
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+            background: var(--glass-bg-hover);
+        }
+
+        /* Test Interface Overlay */
+        .test-interface {
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #F3F4F6;
+            z-index: 2000;
+            flex-direction: column;
+            color: #1F2937;
+            /* Force dark text for readability in test mode */
+        }
+
+        .test-header {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--warning);
+            font-variant-numeric: tabular-nums;
+            background: #FFFBEB;
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid #FCD34D;
+        }
+
+        .test-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .test-sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #E5E7EB;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .section-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: user-select;
+            color: #4B5563;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .section-btn:hover {
+            background: #F3F4F6;
+        }
+
+        .section-btn.active {
+            background: #EFF6FF;
+            color: #2563EB;
+            border-color: #BFDBFE;
+        }
+
+        .test-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background: #F9FAFB;
+        }
+
+        .question-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB;
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #374151;
+        }
+
+        .option-label:hover {
+            background: #F9FAFB;
+        }
+
+        .option-label input {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .option-label.selected {
+            border-color: #2563EB;
+            background: #EFF6FF;
+            color: #1E3A8A;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="dashboard.html" class="sidebar-link">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="ielts-materials.html" class="sidebar-link">
+                        <span>Materials</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-courses.html" class="sidebar-link">
+                        <span>Courses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link active">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-results.html" class="sidebar-link">
+                        <span>Results</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="applications.html" class="sidebar-link">
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="universities.html" class="sidebar-link">
+                        <span>Universities</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="application-new.html" class="sidebar-link">
+                        <span>New Application</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="invoices.html" class="sidebar-link">
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="documents.html" class="sidebar-link">
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="profile.html" class="sidebar-link">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="notifications.html" class="sidebar-link">
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">IELTS Mock Tests</h1>
+            <p class="page-subtitle">Take full-length practice exams to prepare for your IELTS.</p>
+        </div>
+
+        <div id="tests-list-view">
+            <h2 class="card-title">Available Tests</h2>
+            <div id="tests-grid" class="stats-grid"
+                style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+                <!-- Tests injected javaScript -->
+                <div class="card" style="grid-column: 1/-1; text-align: center;">
+                    Loading available tests...
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Full Screen Test Interface -->
+    <div id="test-interface" class="test-interface">
+        <header class="test-header">
+            <h3 id="active-test-title" style="margin:0; font-size: 20px; font-weight: 700; color: #111827;">IELTS
+                Practice Test</h3>
+            <div id="timer" class="timer">00:00:00</div>
+            <button class="btn btn-primary" onclick="submitTest()" style="background: #2563EB;">Submit Test</button>
+        </header>
+        <div class="test-body">
+            <div class="test-sidebar">
+                <h4 style="margin-bottom: 16px; color: #9CA3AF; font-size: 12px; text-transform: uppercase;">Sections
+                </h4>
+                <div id="section-nav">
+                    <!-- Sections -->
+                </div>
+            </div>
+            <div class="test-content" id="test-questions-container">
+                <!-- Questions -->
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        // Check Auth
+        checkAuth();
+
+        let currentTest = null;
+        let testQuestions = [];
+        let userAnswers = {};
+        let timerInterval;
+
+        // Load Available Tests
+        async function loadTests() {
+            try {
+                const token = JSON.parse(localStorage.getItem('token') || '{}');
+                // Use fetchWithAuth helper if valid, else manual
+                const res = await fetch('/api/ielts-mock/list', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const tests = await res.json();
+
+                const grid = document.getElementById('tests-grid');
+                grid.innerHTML = tests.map(test => `
+                    <div class="test-card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+                            <span class="badge ${test.type === 'Academic' ? 'info' : 'success'}">${test.type}</span>
+                            <span style="color: rgba(255,255,255,0.7); font-size:14px;"><i class="far fa-clock"></i> ${test.duration_minutes}m</span>
+                        </div>
+                        <h3 style="font-size:18px; margin-bottom:8px; color: white;">${test.test_name}</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size:14px; margin-bottom:24px;">Full length practice test covering Listening, Reading, Writing, and Speaking.</p>
+                        <button class="btn btn-primary" style="width:100%" onclick="startTest(${test.id})">Start Test</button>
+                    </div>
+                `).join('');
+
+                if (tests.length === 0) {
+                    grid.innerHTML = `<div class="card" style="text-align: center; grid-column: 1/-1;">No mock tests available yet.</div>`;
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Start Test
+        async function startTest(testId) {
+            try {
+                const res = await fetch(`/api/ielts-mock/take/${testId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!res.ok) throw new Error('Failed to load test');
+                const data = await res.json();
+
+                currentTest = data.test;
+                testQuestions = data.questions;
+                userAnswers = {};
+
+                // Setup Interface
+                document.getElementById('test-interface').style.display = 'flex';
+                document.getElementById('active-test-title').textContent = currentTest.test_name;
+
+                // Group By Section
+                const sections = [...new Set(testQuestions.map(q => q.section))];
+                renderSectionNav(sections);
+                renderQuestions(sections[0]); // Start with first section
+
+                // Start Timer
+                startTimer(currentTest.duration_minutes * 60);
+
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function renderSectionNav(sections) {
+            const container = document.getElementById('section-nav');
+            container.innerHTML = sections.map((sec, idx) => `
+                <button class="section-btn ${idx === 0 ? 'active' : ''}" onclick="switchSection('${sec}', this)">
+                    ${sec} <span style="float:right; opacity:0.5; font-size:12px;">${testQuestions.filter(q => q.section === sec).length} Qs</span>
+                </button>
+            `).join('');
+        }
+
+        function switchSection(section, btn) {
+            document.querySelectorAll('.section-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderQuestions(section);
+        }
+
+        function renderQuestions(section) {
+            const container = document.getElementById('test-questions-container');
+            const questions = testQuestions.filter(q => q.section === section);
+
+            container.innerHTML = `
+                <h2 style="margin-bottom:24px; border-bottom:1px solid #E5E7EB; padding-bottom:16px; color:#111827;">${section} Section</h2>
+                ${questions.map((q, idx) => `
+                    <div class="question-card">
+                        <div style="margin-bottom:12px; color:#6B7280; font-size:13px; font-weight:600;">QUESTION ${q.id}</div>
+                        <div class="question-text">${q.question_text}</div>
+                        ${renderOptions(q)}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function renderOptions(q) {
+            if (q.options_json) {
+                // Multiple Choice
+                const opts = typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json;
+                return `
+                    <div class="options-grid">
+                        ${opts.map((opt, i) => `
+                            <label class="option-label ${userAnswers[q.id] === opt ? 'selected' : ''}" onclick="selectAnswer(${q.id}, '${opt}', this)">
+                                <input type="radio" name="q_${q.id}" ${userAnswers[q.id] === opt ? 'checked' : ''}>
+                                ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                // Text Area (Writing/Speaking rough input)
+                return `<textarea style="width:100%; height:150px; padding:12px; border:1px solid #E5E7EB; border-radius:8px; color: black;" onchange="saveTextAnswer(${q.id}, this.value)">${userAnswers[q.id] || ''}</textarea>`;
+            }
+        }
+
+        function selectAnswer(qId, val, labelEl) {
+            userAnswers[qId] = val;
+            // Visual Update
+            const parent = labelEl.parentElement;
+            parent.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+            labelEl.classList.add('selected');
+        }
+
+        function saveTextAnswer(qId, val) {
+            userAnswers[qId] = val;
+        }
+
+        function startTimer(durationSeconds) {
+            let timer = durationSeconds;
+            const display = document.getElementById('timer');
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const hours = Math.floor(timer / 3600);
+                const minutes = Math.floor((timer % 3600) / 60);
+                const seconds = timer % 60;
+
+                display.textContent =
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (--timer < 0) {
+                    clearInterval(timerInterval);
+                    alert("Time's up! Submitting test...");
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        async function submitTest() {
+            clearInterval(timerInterval);
+
+            if (!confirm("Are you sure you want to finish the test?")) {
+                // ideally resume timer here but simplified.
+            }
+
+            try {
+                const res = await fetch('/api/ielts-mock/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        testId: currentTest.id,
+                        answers: userAnswers
+                    })
+                });
+
+                const result = await res.json();
+
+                // Show Results Alert
+                alert(`Test Submitted!\n\nOverall Band: ${result.results.overall}\nListening: ${result.results.listening}\nReading: ${result.results.reading}`);
+                window.location.reload();
+
+            } catch (err) {
+                console.error(err);
+                alert("Submission failed");
+            }
+        }
+
+        // Init
+        loadTests();
+    </script>
+</body>
+
+</html>

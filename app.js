@@ -60,15 +60,35 @@ app.use("/api/reminders", reminderRoutes);
 app.use("/api/admin/ielts", materialsRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/counselors", counselorsRoutes);
+app.use("/api", require("./cms")); // Mounts /api/public/content and /api/admin/content
 
 // Serve uploaded files
 app.use('/uploads/documents', express.static('public/uploads/documents'));
+app.use('/uploads/materials', express.static('public/uploads/materials'));
+
+/* =========================
+   CONTACT FORM ENDPOINT
+========================= */
+app.post("/api/contact", (req, res) => {
+    const { name, email, phone, service, message } = req.body;
+
+    if (!name || !email || !service || !message) {
+        return res.status(400).json({ message: "Required fields missing" });
+    }
+
+    // In a real application, save to database or send email
+    console.log("Contact form submission:", { name, email, phone, service, message });
+
+    // For now, just log and return success
+    // TODO: Add email notification or save to database
+    res.json({ message: "Contact form submitted successfully" });
+});
 
 /* =========================
    ROOT CHECK
 ========================= */
 app.get("/", (req, res) => {
-    res.send("✅ Ilham Backend Running");
+    res.sendFile(__dirname + "/public/index.html");
 });
 
 /* =========================

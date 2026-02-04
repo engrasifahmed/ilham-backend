@@ -1,8 +1,41 @@
 const express = require("express");
 const db = require("./db");
 const { auth, adminOnly } = require("./authMiddleware");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const router = express.Router();
+
+// Multer configuration for student photos
+const photoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "public/uploads/students");
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadPhoto = multer({
+  storage: photoStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Only image files (JPEG, JPG, PNG, WebP) are allowed'));
+  }
+});
 
 // Test endpoint
 router.post("/test", (req, res) => {
@@ -495,6 +528,39 @@ router.put("/students/:id", auth, adminOnly, (req, res) => {
 });
 
 /* =========================
+   UPLOAD STUDENT PHOTO (ADMIN)
+========================= */
+router.post("/students/:id/upload-photo", auth, adminOnly, uploadPhoto.single('photo'), (req, res) => {
+  const { id } = req.params;
+
+  if (!req.file) {
+    return res.status(400).json({ message: "No photo uploaded" });
+  }
+
+  const photoUrl = `/uploads/students/${req.file.filename}`;
+
+  db.query(
+    "UPDATE students SET photo_url = ? WHERE id = ?",
+    [photoUrl, id],
+    (err, result) => {
+      if (err) {
+        console.error("Photo upload error:", err);
+        return res.status(500).json({ message: "Failed to update photo" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      res.json({
+        message: "Photo uploaded successfully",
+        photo_url: photoUrl
+      });
+    }
+  );
+});
+
+/* =========================
    DELETE STUDENT (ADMIN)
 ========================= */
 router.delete("/students/:id", auth, adminOnly, (req, res) => {
@@ -933,16 +999,21 @@ router.get("/students", auth, adminOnly, (req, res) => {
       s.phone, 
       s.passport_no,
       s.nationality,
+      u.email,
       g.guardian_name,
       g.relationship_to_student,
       g.guardian_phone,
       g.guardian_email,
       g.guardian_address
      FROM students s
+     JOIN users u ON s.user_id = u.id
      LEFT JOIN guardians g ON g.student_id = s.id
      ORDER BY s.id DESC`,
     (err, rows) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        console.error("Students list error:", err);
+        return res.status(500).json({ message: "Failed to fetch students" });
+      }
       res.json(rows);
     }
   );
@@ -1018,16 +1089,16 @@ router.get("/ielts/courses", auth, adminOnly, (req, res) => {
 });
 
 router.post("/ielts/courses/create", auth, adminOnly, (req, res) => {
-  const { batch_name, instructor, start_date, end_date } = req.body;
+  const { batch_name, instructor, start_date, end_date, description, duration, schedule, price } = req.body;
 
   if (!batch_name || !instructor || !start_date || !end_date) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "Required fields missing" });
   }
 
   db.query(
-    `INSERT INTO ielts_courses (batch_name, instructor, start_date, end_date)
-     VALUES (?, ?, ?, ?)`,
-    [batch_name, instructor, start_date, end_date],
+    `INSERT INTO ielts_courses (batch_name, instructor, start_date, end_date, description, duration, schedule, price)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [batch_name, instructor, start_date, end_date, description || '', duration || '8 weeks', schedule || 'Flexible', price || 0],
     (err, result) => {
       if (err) {
         console.error("Course creation error:", err);
@@ -1040,27 +1111,21 @@ router.post("/ielts/courses/create", auth, adminOnly, (req, res) => {
 
 router.put("/ielts/courses/:id", auth, adminOnly, (req, res) => {
   const { id } = req.params;
-  const { batch_name, instructor, start_date, end_date } = req.body;
+  const { batch_name, instructor, start_date, end_date, description, duration, schedule, price } = req.body;
 
   const updates = [];
   const values = [];
 
-  if (batch_name) {
-    updates.push("batch_name = ?");
-    values.push(batch_name);
-  }
-  if (instructor) {
-    updates.push("instructor = ?");
-    values.push(instructor);
-  }
-  if (start_date) {
-    updates.push("start_date = ?");
-    values.push(start_date);
-  }
-  if (end_date) {
-    updates.push("end_date = ?");
-    values.push(end_date);
-  }
+  if (batch_name) { updates.push("batch_name = ?"); values.push(batch_name); }
+  if (instructor) { updates.push("instructor = ?"); values.push(instructor); }
+  if (start_date) { updates.push("start_date = ?"); values.push(start_date); }
+  if (end_date) { updates.push("end_date = ?"); values.push(end_date); }
+
+  // Optional fields update
+  if (description !== undefined) { updates.push("description = ?"); values.push(description); }
+  if (duration !== undefined) { updates.push("duration = ?"); values.push(duration); }
+  if (schedule !== undefined) { updates.push("schedule = ?"); values.push(schedule); }
+  if (price !== undefined) { updates.push("price = ?"); values.push(price); }
 
   if (updates.length === 0) {
     return res.status(400).json({ message: "No fields to update" });

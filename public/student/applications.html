@@ -1,0 +1,418 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications - ILHAM Student Portal</title>
+    <link rel="stylesheet" href="layout.css">
+    <style>
+        .page-title {
+            color: white !important;
+        }
+
+        .page-subtitle {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .glass-modal {
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(30, 30, 30, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            color: white;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: white;
+        }
+
+        .glass-modal h2,
+        .glass-modal h3,
+        .glass-modal div {
+            color: white;
+        }
+
+        .glass-modal .text-muted {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="dashboard.html" class="sidebar-link">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="ielts-materials.html" class="sidebar-link">
+                        <span>Materials</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-courses.html" class="sidebar-link">
+                        <span>Courses</span>
+                    </a>
+                </li>
+                
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-results.html" class="sidebar-link">
+                        <span>Results</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="applications.html" class="sidebar-link active">
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="universities.html" class="sidebar-link">
+                        <span>Universities</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="application-new.html" class="sidebar-link">
+                        <span>New Application</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="invoices.html" class="sidebar-link">
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="documents.html" class="sidebar-link">
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="profile.html" class="sidebar-link">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="notifications.html" class="sidebar-link">
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 class="page-title">My Applications</h1>
+                    <p class="page-subtitle">Track and manage your university applications</p>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='application-new.html'">
+                    ➕ New Application
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <select id="status-filter" onchange="filterApplications()"
+                    style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white;">
+                    <option value="">All Status</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Submitted">Submitted</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Conditional">Conditional</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>University</th>
+                            <th>Program</th>
+                            <th>Country</th>
+                            <th>Status</th>
+                            <th>Submitted Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applications-tbody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                                <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                                <p>Loading applications...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Application Details Modal -->
+    <div id="app-modal" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+        <div class="glass-modal">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <div id="modal-content">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        let allApplications = [];
+
+        async function loadApplications() {
+            try {
+                const auth = checkAuth();
+                if (!auth) return;
+
+                // Set student name
+                const studentName = auth.payload.full_name || 'Student';
+                document.getElementById('student-name').textContent = studentName;
+                document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+
+                // Load applications
+                const response = await fetch('/api/applications/my', {
+                    headers: {
+                        'Authorization': `Bearer ${auth.token}`
+                    }
+                });
+
+                if (response.ok) {
+                    allApplications = await response.json();
+                    displayApplications(allApplications);
+                } else {
+                    document.getElementById('applications-tbody').innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                                <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                                <p>Failed to load applications</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Load applications error:', error);
+                document.getElementById('applications-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                            <p>Error loading applications</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function displayApplications(applications) {
+            const tbody = document.getElementById('applications-tbody');
+
+            if (applications.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                            <p>No applications yet. Start your first application!</p>
+                            <button class="btn btn-primary" style="margin-top: 20px;" onclick="window.location.href='application-new.html'">
+                                ➕ Create Application
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = applications.map(app => `
+                <tr>
+                    <td><strong>${app.university_name || 'N/A'}</strong></td>
+                    <td>${app.program_name || 'N/A'}</td>
+                    <td>${app.country || 'N/A'}</td>
+                    <td><span class="badge ${getStatusBadge(app.status)}">${app.status}</span></td>
+                    <td>${formatDate(app.created_at)}</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" style="padding: 6px 16px; font-size: 13px;" 
+                                onclick="viewApplication(${app.id})">
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterApplications() {
+            const statusFilter = document.getElementById('status-filter').value;
+
+            const filtered = allApplications.filter(app => {
+                return !statusFilter || app.status === statusFilter;
+            });
+
+            displayApplications(filtered);
+        }
+
+        function viewApplication(id) {
+            const app = allApplications.find(a => a.id == id);
+            if (!app) return;
+
+            const content = document.getElementById('modal-content');
+            const statusColor = getStatusBadge(app.status);
+
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="font-size: 24px; margin-bottom: 8px;">${app.university_name || 'Unknown University'}</h2>
+                        <div class="text-muted" style="font-size: 16px;">${app.program_name || 'Program N/A'}</div>
+                        <div style="margin-top: 8px;">
+                            <span class="badge ${statusColor}" style="font-size: 14px; padding: 6px 16px;">${app.status}</span>
+                        </div>
+                    </div>
+                    <div class="text-muted" style="text-align: right;">
+                        <div>Applied on</div>
+                        <div>${formatDate(app.created_at)}</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                     <h3 style="margin-bottom: 16px; font-size: 18px;">Timeline</h3>
+                     <div class="timeline-item" style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--success);"></div>
+                        <div>
+                            <div style="font-weight: 600;">Application Submitted</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${formatDate(app.created_at)}</div>
+                        </div>
+                    </div>
+                    
+                    ${app.status === 'Rejected' ? `
+                    <div class="timeline-item" style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--danger);"></div>
+                        <div>
+                             <div style="font-weight: 600; color: var(--danger);">Rejected</div>
+                             <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Process Completed</div>
+                        </div>
+                    </div>` : ''}
+
+                    ${app.status === 'Approved' ? `
+                    <div class="timeline-item" style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--success);"></div>
+                        <div>
+                             <div style="font-weight: 600; color: var(--success);">Approved</div>
+                             <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Check your email</div>
+                        </div>
+                    </div>` : ''}
+                </div>
+                
+                 ${app.notes ? `
+                 <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px;">
+                    <h3 style="margin-bottom: 8px; font-size: 16px;">Your Notes</h3>
+                    <p class="text-muted" style="font-size: 14px;">${app.notes}</p>
+                 </div>
+                 ` : ''}
+            `;
+
+            document.getElementById('app-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('app-modal').classList.remove('active');
+        }
+
+        // Load applications on page load
+        loadApplications();
+    </script>
+</body>
+
+</html>

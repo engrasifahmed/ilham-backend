@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Courses - ILHAM Student Portal</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="dashboard.html" class="sidebar-link">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="ielts-materials.html" class="sidebar-link">
+                        <span>Materials</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-courses.html" class="sidebar-link active">
+                        <span>Courses</span>
+                    </a>
+                </li>
+                
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-results.html" class="sidebar-link">
+                        <span>Results</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="applications.html" class="sidebar-link">
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="universities.html" class="sidebar-link">
+                        <span>Universities</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="application-new.html" class="sidebar-link">
+                        <span>New Application</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="invoices.html" class="sidebar-link">
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="documents.html" class="sidebar-link">
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="profile.html" class="sidebar-link">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="notifications.html" class="sidebar-link">
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-header">
+                <h1 class="page-title">IELTS Courses</h1>
+                <p class="page-subtitle">Enroll in comprehensive IELTS preparation courses</p>
+            </div>
+
+            <!-- Available Courses -->
+            <div id="courses-container"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px;">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📚</div>
+                    <p>Loading courses...</p>
+                </div>
+            </div>
+    </main>
+
+    <script src="layout.js"></script>
+    <script>
+        const auth = checkAuth();
+        if (auth) {
+            const studentName = auth.payload.full_name || 'Student';
+            document.getElementById('student-name').textContent = studentName;
+            document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+        }
+
+        async function loadCourses() {
+            try {
+                const response = await fetch('/api/ielts/courses', {
+                    headers: { 'Authorization': `Bearer ${auth.token}` }
+                });
+
+                if (response.ok) {
+                    const courses = await response.json();
+                    renderCourses(courses);
+                } else {
+                    renderError();
+                }
+            } catch (error) {
+                console.error("Error loading courses", error);
+                renderError();
+            }
+        }
+
+        function renderCourses(courses) {
+            const container = document.getElementById('courses-container');
+            if (courses.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                        <p>No courses available at the moment.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = courses.map(course => `
+                <div class="card">
+                    <div style="background: linear-gradient(135deg, #3B82F6, #10B981); height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 20px;">
+                        🎯
+                    </div>
+                    <h3 style="font-size: 22px; margin-bottom: 12px;">${course.batch_name}</h3>
+                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px; line-height: 1.6;">
+                        ${course.description || 'Comprehensive IELTS preparation'}
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span style="color: rgba(255,255,255,0.5);">📅</span>
+                            <span style="font-size: 14px;">Duration: ${course.duration || 'Flexible'}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span style="color: rgba(255,255,255,0.5);">⏰</span>
+                            <span style="font-size: 14px;">Schedule: ${course.schedule || 'See details'}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: rgba(255,255,255,0.5);">💰</span>
+                            <span style="font-size: 14px;">Price: RM ${course.price || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="enrollCourse(${course.id}, '${course.batch_name}')">
+                        Enroll Now
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderError() {
+            document.getElementById('courses-container').innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; width: 100%; padding: 60px; color: rgba(255,255,255,0.5);">
+                     <p>Failed to load courses</p>
+                </div>
+            `;
+        }
+
+        function enrollCourse(id, name) {
+            showToast(`To enroll in ${name}, please contact admin or visit the office.`, 'info');
+            // TODO: API Connect for auto-enrollment
+        }
+
+        loadCourses();
+    </script>
+</body>
+
+</html>

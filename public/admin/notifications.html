@@ -25,6 +25,8 @@
 
   <script src="layout.js"></script>
   <script>
+    let allNotifications = [];
+
     async function loadNotifications() {
       try {
         const notifications = await api('/api/notifications');

@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
   <title>Dashboard - ILHAM Admin</title>
   <link rel="stylesheet" href="layout.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -95,7 +96,7 @@
           `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">${metrics.totalApplications || 0}</span>`;
 
         document.getElementById('total-revenue').innerHTML =
-          `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">$${(metrics.totalRevenue || 0).toLocaleString()}</span>`;
+          `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">৳${(metrics.totalRevenue || 0).toLocaleString()}</span>`;
 
         document.getElementById('pending-invoices').innerHTML =
           `<span style="font-size: 48px; font-weight: 700; color: #FFFFFF;">${metrics.pendingInvoices || 0}</span>`;
@@ -173,7 +174,7 @@
           data: {
             labels: months,
             datasets: [{
-              label: 'Revenue ($)',
+              label: 'Revenue (৳)',
               data: revenueData,
               borderColor: 'rgba(96, 165, 250, 1)',
               backgroundColor: 'rgba(96, 165, 250, 0.1)',

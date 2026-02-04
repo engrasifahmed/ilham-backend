@@ -141,11 +141,14 @@
             <td>${s.full_name}</td>
             <td>${s.email || 'N/A'}</td>
             <td>${s.phone || 'N/A'}</td>
-            <td>${s.nationality || 'N/A'}</td>
-            <td>
-              <button onclick="window.location.href='student-profile.html?id=${s.id}'" class="info" style="margin-right: 8px;">View Profile</button>
-              <button onclick="openEditModal(${s.id}, '${(s.full_name || '').replace(/'/g, "\\'")}', '${s.email || ''}', '${s.phone || ''}', '${s.passport_no || ''}', '${s.nationality || ''}')">Edit</button>
-              <button class="danger" onclick="deleteStudent(${s.id}, '${(s.full_name || '').replace(/'/g, "\\'")}')">Delete</button>
+            <td>${s.guardian_name || 'N/A'}</td>
+            <td>${s.guardian_phone || 'N/A'}</td>
+            <td style="min-width: 200px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button onclick="window.location.href='student-profile.html?id=${s.id}'" class="info" style="font-size: 12px; padding: 8px 12px;">View</button>
+                <button onclick="openEditModal(${s.id}, '${(s.full_name || '').replace(/'/g, "\\'")}', '${s.email || ''}', '${s.phone || ''}', '${s.guardian_name || ''}', '${s.guardian_phone || ''}')" style="font-size: 12px; padding: 8px 12px;">Edit</button>
+                <button class="danger" onclick="deleteStudent(${s.id}, '${(s.full_name || '').replace(/'/g, "\\'")}')" style="font-size: 12px; padding: 8px 12px;">Delete</button>
+              </div>
             </td>
           </tr>
         `).join('');

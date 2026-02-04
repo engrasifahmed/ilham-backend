@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universities - ILHAM Student Portal</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="dashboard.html" class="sidebar-link">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="ielts-materials.html" class="sidebar-link">
+                        <span>Materials</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-courses.html" class="sidebar-link">
+                        <span>Courses</span>
+                    </a>
+                </li>
+                
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-results.html" class="sidebar-link">
+                        <span>Results</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="applications.html" class="sidebar-link">
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="universities.html" class="sidebar-link active">
+                        <span>Universities</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="application-new.html" class="sidebar-link">
+                        <span>New Application</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="invoices.html" class="sidebar-link">
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="documents.html" class="sidebar-link">
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="profile.html" class="sidebar-link">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="notifications.html" class="sidebar-link">
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Universities</h1>
+            <p class="page-subtitle">Browse and explore universities worldwide</p>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="card">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <input type="text" id="search-input" placeholder="Search universities..."
+                    style="flex: 1; min-width: 250px; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white;"
+                    oninput="filterUniversities()">
+                <select id="country-filter" onchange="filterUniversities()"
+                    style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white;">
+                    <option value="">All Countries</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="USA">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Malaysia">Malaysia</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Universities Grid -->
+        <div id="universities-container"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                <div style="font-size: 48px; margin-bottom: 16px;">🏫</div>
+                <p>Loading universities...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="layout.js"></script>
+    <script>
+        let allUniversities = [];
+
+        async function loadUniversities() {
+            try {
+                const auth = checkAuth();
+                if (!auth) return;
+
+                const studentName = auth.payload.full_name || 'Student';
+                document.getElementById('student-name').textContent = studentName;
+                document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+
+                const response = await fetch('/api/student/universities', {
+                    headers: {
+                        'Authorization': `Bearer ${auth.token}`
+                    }
+                });
+
+                if (response.ok) {
+                    allUniversities = await response.json();
+                    displayUniversities(allUniversities);
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                console.error('Load universities error:', error);
+                showError();
+            }
+        }
+
+        function displayUniversities(universities) {
+            const container = document.getElementById('universities-container');
+
+            if (universities.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🏫</div>
+                        <p>No universities found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = universities.map(uni => `
+                <div class="card" style="transition: all 0.3s ease; cursor: pointer;"
+                    onmouseover="this.style.transform='translateY(-4px)'" 
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 20px; margin-bottom: 8px; color: white;">${uni.name}</h3>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <span class="badge info">${uni.country}</span>
+                            ${uni.ranking ? `<span class="badge success">Rank: ${uni.ranking}</span>` : ''}
+                        </div>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 16px;">
+                            ${uni.description || 'Top university offering world-class education'}
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-primary" style="flex: 1; padding: 10px; font-size: 14px;" 
+                            onclick="applyToUniversity(${uni.id})">
+                            📝 Apply Now
+                        </button>
+                        <button class="btn btn-secondary" style="padding: 10px 16px; font-size: 14px;" 
+                            onclick="viewDetails(${uni.id})">
+                            Details
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterUniversities() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const country = document.getElementById('country-filter').value;
+
+            const filtered = allUniversities.filter(uni => {
+                const matchesSearch = uni.name.toLowerCase().includes(searchTerm);
+                const matchesCountry = !country || uni.country === country;
+                return matchesSearch && matchesCountry;
+            });
+
+            displayUniversities(filtered);
+        }
+
+        function applyToUniversity(id) {
+            window.location.href = `application-new.html?university_id=${id}`;
+        }
+
+        function viewDetails(id) {
+            // window.location.href = `/student/university-details.html?id=${id}`;
+            showToast("University details view coming soon", "info");
+        }
+
+        function showError() {
+            document.getElementById('universities-container').innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                    <p>Failed to load universities</p>
+                </div>
+            `;
+        }
+
+        loadUniversities();
+    </script>
+</body>
+
+</html>

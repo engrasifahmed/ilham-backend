@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Results - ILHAM Student Portal</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <aside class="sidebar" id="sidebar">
+        <!-- Main -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html" class="sidebar-link"><span>Dashboard</span></a></li>
+            </ul>
+        </div>
+        <!-- IELTS -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="ielts-materials.html" class="sidebar-link"><span>Materials</span></a>
+                </li>
+                <li class="sidebar-item"><a href="ielts-courses.html" class="sidebar-link"><span>Courses</span></a></li>
+                <li class="sidebar-item"><a href="ielts-results.html"
+                        class="sidebar-link active"><span>Results</span></a></li>
+            </ul>
+        </div>
+        <!-- Applications -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="applications.html" class="sidebar-link"><span>My
+                            Applications</span></a></li>
+                <li class="sidebar-item"><a href="universities.html" class="sidebar-link"><span>Universities</span></a>
+                </li>
+                <li class="sidebar-item"><a href="application-new.html" class="sidebar-link"><span>New
+                            Application</span></a></li>
+            </ul>
+        </div>
+        <!-- Account -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="invoices.html" class="sidebar-link"><span>Invoices</span></a></li>
+                <li class="sidebar-item"><a href="documents.html" class="sidebar-link"><span>Documents</span></a></li>
+                <li class="sidebar-item"><a href="profile.html" class="sidebar-link"><span>Profile</span></a></li>
+                <li class="sidebar-item"><a href="notifications.html"
+                        class="sidebar-link"><span>Notifications</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">IELTS Results</h1>
+            <p class="page-subtitle">View your IELTS test performance and scores</p>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date Taken</th>
+                            <th>Listening</th>
+                            <th>Reading</th>
+                            <th>Writing</th>
+                            <th>Speaking</th>
+                            <th>Overall Band</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">Loading results...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="layout.js"></script>
+    <script>
+        const auth = checkAuth();
+        if (auth) {
+            const studentName = auth.payload.full_name || 'Student';
+            document.getElementById('student-name').textContent = studentName;
+            document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+        }
+
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/ielts/results', {
+                    headers: { 'Authorization': `Bearer ${auth.token}` }
+                });
+
+                if (response.ok) {
+                    const results = await response.json();
+                    renderResults(results);
+                } else {
+                    document.getElementById('results-tbody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #ff6b6b;">Failed to load results</td></tr>';
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('results-tbody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #ff6b6b;">Error loading results</td></tr>';
+            }
+        }
+
+        function renderResults(results) {
+            const tbody = document.getElementById('results-tbody');
+            if (results.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; opacity: 0.7;">No IELTS results found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = results.map(r => `
+                <tr>
+                    <td>${new Date(r.date_taken).toLocaleDateString()}</td>
+                    <td>${r.listening}</td>
+                    <td>${r.reading}</td>
+                    <td>${r.writing}</td>
+                    <td>${r.speaking}</td>
+                    <td><span class="badge success">${r.overall}</span></td>
+                    <td>${r.remarks || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        loadResults();
+    </script>
+</body>
+
+</html>

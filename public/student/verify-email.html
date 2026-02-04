@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - ILHAM Education</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8f9fa;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #3B82F6;
+            background: white;
+            outline: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Verify Your Email</h2>
+        <p>We've sent a verification code to your email. Please enter it below.</p>
+        <form id="verifyForm" onsubmit="handleVerify(event)">
+            <div class="form-group">
+                <label>Verification Code</label>
+                <input type="text" id="otp" required placeholder="123456" maxlength="6">
+            </div>
+            <button type="submit" class="btn">Verify Account</button>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+
+        if (!email) {
+            alert("No email provided. Please register first.");
+            window.location.href = '/register.html';
+        }
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            const otp = document.getElementById('otp').value;
+            const btn = e.target.querySelector('button');
+
+            btn.innerHTML = 'Verifying...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/student/verify-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Email verified successfully! You can now login.');
+                    window.location.href = '/login.html';
+                } else {
+                    alert(data.message || 'Verification failed');
+                    btn.innerHTML = 'Verify Account';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error');
+                btn.innerHTML = 'Verify Account';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

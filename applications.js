@@ -60,8 +60,8 @@ router.post("/apply", auth, (req, res) => {
 
                   // Now create new application
                   db.query(
-                    "INSERT INTO applications (student_id, university_id, status) VALUES (?,?,?)",
-                    [studentId, university_id, "Applied"],
+                    "INSERT INTO applications (student_id, university_id, status, program, notes) VALUES (?,?,?,?,?)",
+                    [studentId, university_id, "Applied", req.body.program || null, req.body.notes || null],
                     (err, result) => {
                       if (err) {
                         console.error("Application creation error:", err);
@@ -86,8 +86,8 @@ router.post("/apply", auth, (req, res) => {
 
           // No existing application, create new one
           db.query(
-            "INSERT INTO applications (student_id, university_id, status) VALUES (?,?,?)",
-            [studentId, university_id, "Applied"],
+            "INSERT INTO applications (student_id, university_id, status, program, notes) VALUES (?,?,?,?,?)",
+            [studentId, university_id, "Applied", req.body.program || null, req.body.notes || null],
             (err, result) => {
               if (err) {
                 console.error("Application creation error:", err);
@@ -110,7 +110,10 @@ router.post("/apply", auth, (req, res) => {
 ========================= */
 router.get("/my", auth, (req, res) => {
   db.query(
-    `SELECT applications.*, universities.name AS university
+    `SELECT applications.*, 
+            universities.name AS university_name,
+            universities.country,
+            applications.program AS program_name
      FROM applications
      JOIN students ON students.id = applications.student_id
      JOIN universities ON universities.id = applications.university_id

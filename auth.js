@@ -18,154 +18,152 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =========================
-   REGISTER
+   PUBLIC STUDENT REGISTRATION
+   Uses same logic as admin student creation
 ========================= */
 router.post("/register", (req, res) => {
-  const { email, password, role } = req.body;
-  const hash = bcrypt.hashSync(password, 10);
+  const { full_name, email, phone, dob, password, passport_no, nationality, guardian_name, guardian_phone } = req.body;
 
-  // Generate 6 digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
+  // Validate required fields
+  if (!full_name || !email || !password) {
+    return res.status(400).json({ error: "Full name, email, and password are required" });
+  }
 
+  // Check if email already exists in students table
   db.query(
-    "INSERT INTO users (email, password_hash, role, otp_code, otp_expires_at) VALUES (?,?,?,?,?)",
-    [email, hash, role || "STUDENT", otp, expiresAt],
-    (err) => {
+    "SELECT id FROM students WHERE email = ?",
+    [email],
+    (err, existing) => {
       if (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-          return res.status(400).json({ message: "Email already registered" });
-        }
-        return res.status(500).json(err);
+        console.error("Email check error:", err);
+        return res.status(500).json({ error: "Database error" });
       }
 
-      // Check if SMTP is configured
-      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.log("⚠️ SMTP credentials missing in .env");
-        console.log("==================================");
-        console.log("🔑 OTP CODE:", otp);
-        console.log("==================================");
-
-        return res.json({
-          message: "Registration successful. OTP logged to server terminal (SMTP missing).",
-          requireOtp: true
-        });
+      if (existing.length > 0) {
+        return res.status(400).json({ error: "Email already registered" });
       }
 
-      // Send Email
-      const mailOptions = {
-        from: process.env.SMTP_USER || 'no-reply@ilham.com',
-        to: email,
-        subject: 'ILHAM Verification Code',
-        text: `Your verification code is: ${otp}. It expires in 10 minutes.`
-      };
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error("Email send error:", error);
-
-          // FALLBACK: Log OTP to console so dev can still verify
-          console.log("⚠️ EMAIL FAILED. FALLBACK OTP:");
-          console.log("==================================");
-          console.log("🔑 OTP CODE:", otp);
-          console.log("==================================");
-
-          // Return success with warning
-          return res.status(200).json({
-            message: "Registration successful. Email failed, but OTP logged to server console.",
-            warning: true
-          });
+      // Hash password
+      bcrypt.hash(password, 10, (err, hashedPassword) => {
+        if (err) {
+          console.error("Password hash error:", err);
+          return res.status(500).json({ error: "Failed to process password" });
         }
-        res.json({
-          message: "Registration successful. OTP sent to email.",
-          requireOtp: true
-        });
+
+        // Create user account first
+        const otp = generateOTP();
+
+        db.query(
+          `INSERT INTO users (email, password_hash, is_verified, role, otp_code, otp_expires_at)
+           VALUES (?, ?, 0, 'STUDENT', ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))`,
+          [email, hashedPassword, otp],
+          (err, userResult) => {
+            if (err) {
+              console.error("User creation error:", err);
+              return res.status(500).json({ error: "Failed to create user account" });
+            }
+
+            const user_id = userResult.insertId;
+
+            // Create student record
+            db.query(
+              `INSERT INTO students (user_id, full_name, phone, dob, passport_no, nationality)
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [user_id, full_name, phone || null, dob || null, passport_no || null, nationality || null],
+              (err, studentResult) => {
+                if (err) {
+                  console.error("Student creation error:", err);
+                  // Rollback: delete user account
+                  db.query("DELETE FROM users WHERE id = ?", [user_id]);
+                  return res.status(500).json({ error: "Failed to create student record" });
+                }
+
+                const student_id = studentResult.insertId;
+
+                // Create guardian record if provided
+                if (guardian_name || guardian_phone) {
+                  db.query(
+                    `INSERT INTO guardians (student_id, guardian_name, guardian_phone)
+                     VALUES (?, ?, ?)`,
+                    [student_id, guardian_name || null, guardian_phone || null],
+                    (err) => {
+                      if (err) {
+                        console.error("Guardian creation error:", err);
+                        // Continue anyway - guardian is optional
+                      }
+                    }
+                  );
+                }
+
+                // Send OTP Email
+                transporter.sendMail({
+                  from: process.env.SMTP_USER,
+                  to: email,
+                  subject: "Verify Your Email - ILHAM Education",
+                  text: `Welcome to ILHAM Education! Your verification code is: ${otp}`
+                });
+
+                res.status(201).json({
+                  message: "Registration successful. Please verify your email.",
+                  student_id: student_id,
+                  verify_required: true,
+                  email: email
+                });
+              }
+            );
+          }
+        );
       });
     }
   );
 });
 
 /* =========================
-   VERIFY OTP
-========================= */
-/* =========================
    FORGOT PASSWORD
 ========================= */
 router.post("/forgot-password", (req, res) => {
   const { email } = req.body;
 
-  db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
+  db.query("SELECT * FROM users WHERE email = ?", [email], (err, users) => {
     if (err) return res.status(500).json(err);
-    if (!result.length) return res.status(404).json({ message: "User not found" });
+    if (users.length === 0)
+      return res.status(404).json({ message: "No user with that email" });
 
-    const user = result[0];
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
+    const user = users[0];
 
-    // Save OTP
+    // Generate reset token
+    const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
     db.query(
-      "UPDATE users SET otp_code=?, otp_expires_at=? WHERE id=?",
-      [otp, expiresAt, user.id],
+      "UPDATE users SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE id = ?",
+      [resetToken, user.id],
       (err) => {
         if (err) return res.status(500).json(err);
 
-        // Send Email (Reuse similar logic)
-        const mailOptions = {
-          from: process.env.SMTP_USER || 'no-reply@ilham.com',
-          to: email,
-          subject: 'ILHAM Password Reset OTP',
-          text: `Your password reset code is: ${otp}. It expires in 10 minutes.`
-        };
+        // Send email
+        const resetUrl = `http://localhost:4000/reset-password.html?token=${resetToken}`;
 
-        // Check SMTP config
-        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-          console.log("⚠️ SMTP missing. Logged OTP:", otp);
-          return res.json({ message: "OTP logged to console (SMTP missing)." });
-        }
-
-        transporter.sendMail(mailOptions, (error) => {
-          if (error) {
-            console.error("Email error:", error);
-            console.log("⚠️ Fallback OTP:", otp);
-            return res.json({ message: "Email failed, OTP logged to console." });
+        transporter.sendMail(
+          {
+            from: process.env.SMTP_USER,
+            to: email,
+            subject: "Password Reset Request",
+            text: `Click this link to reset your password: ${resetUrl}`,
+          },
+          (error) => {
+            if (error) {
+              console.error("Email error:", error);
+              return res
+                .status(500)
+                .json({ message: "Could not send email" });
+            }
+            res.json({ message: "Reset link sent" });
           }
-          res.json({ message: "OTP sent to email." });
-        });
+        );
       }
     );
-  });
-});
-
-/* =========================
-   VERIFY OTP (Handling Registration & PWD Reset)
-========================= */
-router.post("/verify-otp", (req, res) => {
-  const { email, otp } = req.body;
-
-  db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
-    if (err) return res.status(500).json(err);
-    if (!result.length) return res.status(404).json({ message: "User not found" });
-
-    const user = result[0];
-    const now = new Date();
-
-    // Check OTP
-    if (user.otp_code === otp && new Date(user.otp_expires_at) > now) {
-      // Success: clear OTP
-      db.query("UPDATE users SET is_verified=1, otp_code=NULL, otp_expires_at=NULL WHERE id=?", [user.id], (err) => {
-        if (err) return res.status(500).json(err);
-
-        // Generate token (used for auto-login OR parameter for password reset)
-        const token = jwt.sign(
-          { id: user.id, role: user.role, type: 'reset_access' },
-          process.env.JWT_SECRET,
-          { expiresIn: "15m" } // Short lived
-        );
-        res.json({ message: "Verification successful", token });
-      });
-    } else {
-      res.status(400).json({ message: "Invalid or expired OTP" });
-    }
   });
 });
 
@@ -175,17 +173,21 @@ router.post("/verify-otp", (req, res) => {
 router.post("/reset-password", (req, res) => {
   const { token, newPassword } = req.body;
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
     const hash = bcrypt.hashSync(newPassword, 10);
 
-    db.query("UPDATE users SET password_hash=? WHERE id=?", [hash, decoded.id], (err) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "Password reset successfully." });
-    });
-  } catch (e) {
-    return res.status(401).json({ message: "Invalid or expired token" });
-  }
+    db.query(
+      "UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?",
+      [hash, decoded.id],
+      (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Password reset successfully" });
+      }
+    );
+  });
 });
 
 /* =========================
@@ -194,32 +196,112 @@ router.post("/reset-password", (req, res) => {
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  db.query(
-    "SELECT * FROM users WHERE email=?",
-    [email],
-    (err, result) => {
-      if (!result.length)
-        return res.status(401).json({ error: "Invalid login" });
-
-      const user = result[0];
-
-      if (!bcrypt.compareSync(password, user.password_hash))
-        return res.status(401).json({ error: "Invalid login" });
-
-      if (!user.is_verified) {
-        // Allow re-sending OTP if needed (future improvement)
-        return res.status(403).json({ error: "Email not verified", requireOtp: true });
-      }
-
-      const token = jwt.sign(
-        { id: user.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      res.json({ token });
+  db.query("SELECT * FROM users WHERE email = ?", [email], (err, users) => {
+    if (err) return res.status(500).json(err);
+    if (users.length === 0) {
+      return res.status(404).json({ error: "Email not registered" });
     }
-  );
+
+    const user = users[0];
+    const valid = bcrypt.compareSync(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: "Invalid password" });
+
+    // Check verification
+    if (user.is_verified === 0) {
+      return res.status(403).json({ error: "Email not verified", verify_required: true, email: email });
+    }
+
+    // Create JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token });
+  });
+});
+
+/* =========================
+   STUDENT OTP ROUTES
+========================= */
+
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// VERIFY EMAIL (REGISTRATION)
+router.post("/student/verify-email", (req, res) => {
+  const { email, otp } = req.body;
+
+  db.query("SELECT * FROM users WHERE email = ? AND role='STUDENT'", [email], (err, users) => {
+    if (err) return res.status(500).json(err);
+    if (users.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const user = users[0];
+
+    // Check if verified
+    if (user.is_verified === 1) return res.json({ message: "Already verified" });
+
+    // Verify OTP
+    if (user.otp_code !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (new Date(user.otp_expires_at) < new Date()) return res.status(400).json({ message: "OTP Expired" });
+
+    // Update
+    db.query("UPDATE users SET is_verified=1, otp_code=NULL, otp_expires_at=NULL WHERE id=?", [user.id], (updErr) => {
+      if (updErr) return res.status(500).json(updErr);
+      res.json({ message: "Email verified successfully" });
+    });
+  });
+});
+
+// FORGOT PASSWORD (OTP)
+router.post("/student/forgot-password", (req, res) => {
+  const { email } = req.body;
+
+  db.query("SELECT * FROM users WHERE email = ? AND role='STUDENT'", [email], (err, users) => {
+    if (err) return res.status(500).json(err);
+    if (users.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const user = users[0];
+    const otp = generateOTP();
+
+    db.query("UPDATE users SET otp_code=?, otp_expires_at=DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE id=?", [otp, user.id], (uErr) => {
+      if (uErr) return res.status(500).json(uErr);
+
+      // Send Email
+      transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to: email,
+        subject: "Password Reset OTP",
+        text: `Your OTP is: ${otp}`
+      });
+
+      res.json({ message: "OTP sent to email" });
+    });
+  });
+});
+
+// RESET PASSWORD (WITH OTP)
+router.post("/student/reset-password", (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  db.query("SELECT * FROM users WHERE email = ? AND role='STUDENT'", [email], (err, users) => {
+    if (err) return res.status(500).json(err);
+    if (users.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const user = users[0];
+    if (user.otp_code !== otp || new Date(user.otp_expires_at) < new Date()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const hash = bcrypt.hashSync(newPassword, 10);
+
+    db.query("UPDATE users SET password_hash=?, otp_code=NULL, otp_expires_at=NULL WHERE id=?", [hash, user.id], (updErr) => {
+      if (updErr) return res.status(500).json(updErr);
+      res.json({ message: "Password reset successfully" });
+    });
+  });
 });
 
 module.exports = router;

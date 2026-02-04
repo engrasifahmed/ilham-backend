@@ -273,7 +273,7 @@
             // Since we can't see layout.js right now, it's safer to use fetch directly or assume we need to handle it.
 
             // Let's assume standard fetch for file upload
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('admin_token');
 
             // Prepare data
             // Backend expects: title, description, material_type, file_url (if text), course_id, is_free
@@ -346,7 +346,7 @@
                 formData.set('is_free', '1');
             }
 
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('admin_token');
 
             try {
                 const response = await fetch(`/api/admin/ielts/materials/${id}`, {

@@ -4,228 +4,383 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login - ILHAM</title>
+  <script>
+    if (new URLSearchParams(window.location.search).get('admin') === 'true') {
+      window.location.href = '/admin/login.html';
+    }
+  </script>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
+  <title>Login - ILHAM Education</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Poppins', sans-serif;
     }
 
     body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
     }
 
-    .login-container {
-      background: rgba(30, 35, 50, 0.95);
-      backdrop-filter: blur(20px);
-      padding: 48px;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    .container {
+      position: relative;
       width: 100%;
-      max-width: 420px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 1100px;
+      height: 650px;
+      background: #fff;
+      border-radius: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      display: flex;
     }
 
-    .login-header {
-      text-align: center;
-      margin-bottom: 40px;
+    /* Left Panel - Motivational Content */
+    .left-panel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 50px;
+      clip-path: ellipse(100% 100% at 0% 50%);
+      z-index: 100;
     }
 
-    .login-header h1 {
-      font-size: 32px;
+    .left-panel h1 {
+      font-size: 42px;
       font-weight: 700;
-      letter-spacing: 1.2px;
-      color: #5b9bd5;
-      margin-bottom: 8px;
+      margin-bottom: 20px;
+      text-align: center;
     }
 
-    .login-header p {
-      color: #b0bec5;
+    .left-panel p {
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 30px;
+      opacity: 0.95;
+      line-height: 1.6;
+    }
+
+    .benefits {
+      list-style: none;
+      margin: 20px 0;
+      width: 100%;
+    }
+
+    .benefits li {
+      margin: 12px 0;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .benefits li::before {
+      content: '•';
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .switch-btn {
+      background: transparent;
+      border: 2px solid white;
+      color: white;
+      padding: 12px 50px;
+      border-radius: 25px;
       font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
     }
 
-    .form-group {
-      margin-bottom: 24px;
+    .switch-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
 
-    .form-group label {
+    /* Right Panel - Form */
+    .form-panel {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      right: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-container {
+      width: 100%;
+      padding: 40px 50px;
+      text-align: center;
+    }
+
+    .logo-container {
+      margin-bottom: 30px;
+    }
+
+    .logo-container img {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+
+    .logo-text {
+      color: #3B82F6;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .form-container h2 {
+      font-size: 32px;
+      color: #333;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .form-container p {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .role-tabs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+
+    .role-tab {
+      flex: 1;
+      padding: 10px 20px;
+      border: 2px solid #e0e0e0;
+      background: transparent;
+      border-radius: 25px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .role-tab.active {
+      background: linear-gradient(135deg, #3B82F6, #10B981);
+      color: white;
+      border-color: transparent;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-field:focus {
+      border-color: #3B82F6;
+      background: #f8f9ff;
+    }
+
+    .forgot-link {
       display: block;
-      margin-bottom: 8px;
-      color: #b0bec5;
-      font-size: 14px;
+      text-align: right;
+      color: #3B82F6;
+      text-decoration: none;
+      font-size: 13px;
+      margin: 10px 0;
       font-weight: 500;
     }
 
-    .form-group input {
-      width: 100%;
-      padding: 14px 16px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: white;
-      font-size: 15px;
-      transition: all 0.3s ease;
-    }
-
-    .form-group input::placeholder {
-      color: #7a8a99;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: #5b9bd5;
-      box-shadow: 0 0 0 3px rgba(91, 155, 213, 0.2);
-      background: rgba(0, 0, 0, 0.4);
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #4a90e2, #6a5acd);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
-    }
-
-    .login-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(74, 144, 226, 0.6);
-    }
-
-    .login-btn:active {
-      transform: translateY(0);
-    }
-
-    .login-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+    .forgot-link:hover {
+      text-decoration: underline;
     }
 
     .error-message {
-      background: rgba(231, 76, 60, 0.1);
-      border: 1px solid rgba(231, 76, 60, 0.3);
-      border-left: 4px solid #e74c3c;
-      color: #e74c3c;
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-size: 14px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #EF4444;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-size: 13px;
       display: none;
     }
 
     .error-message.show {
       display: block;
-      animation: slideIn 0.3s ease;
     }
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #3B82F6, #10B981);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 600px;
       }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      .left-panel,
+      .form-panel {
+        width: 100%;
+        position: relative;
+      }
+
+      .left-panel {
+        clip-path: none;
+        padding: 40px 30px;
+        height: auto;
+      }
+
+      .left-panel h1 {
+        font-size: 32px;
+      }
+
+      .form-container {
+        padding: 30px 25px;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="login-container">
-    <div class="login-header">
-      <h1>ILHAM ADMIN</h1>
-      <p>Sign in to access the admin panel</p>
+  <div class="container">
+    <!-- Left Panel - Motivational Content -->
+    <div class="left-panel">
+      <h1>Welcome Back!</h1>
+      <p>Sign in to continue your study abroad journey with ILHAM Education</p>
+      <ul class="benefits">
+        <li>Track your applications</li>
+        <li>Access IELTS materials</li>
+        <li>Manage documents</li>
+        <li>View invoices & payments</li>
+      </ul>
+      <a href="/student-register.html" class="switch-btn">SIGN UP</a>
     </div>
 
-    <div id="error-message" class="error-message"></div>
+    <!-- Right Panel - Sign In Form -->
+    <div class="form-panel">
+      <div class="form-container">
+        <div class="logo-container">
+          <img src="/Logo.png" alt="ILHAM Education">
 
-    <form id="login-form">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" name="email" placeholder="admin@ilham.com" required>
+        </div>
+
+        <h2>Student Login</h2>
+        <p>Enter your credentials to access your student portal</p>
+
+        <form id="signin-form">
+          <input type="email" id="signin-email" class="input-field" placeholder="Email Address" required>
+          <input type="password" id="signin-password" class="input-field" placeholder="Password" required>
+
+          <a href="/student/forgot-password.html" class="forgot-link">Forgot Your Password?</a>
+
+          <div id="signin-error" class="error-message"></div>
+
+          <button type="submit" class="submit-btn" id="signin-btn">SIGN IN</button>
+
+          <div
+            style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <a href="/admin/login.html" style="color: rgba(255,255,255,0.8); font-size: 13px; text-decoration: none;">
+              Admin Login →
+            </a>
+          </div>
+        </form>
       </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-      </div>
-
-      <button type="submit" class="login-btn" id="login-btn">Sign In</button>
-    </form>
-
-    <div style="text-align: center; margin-top: 20px; color: #b0bec5; font-size: 14px;">
-      <a href="forgot-password.html" style="color: #5b9bd5; text-decoration: none;">Forgot Password?</a>
-      <span style="margin: 0 10px;">|</span>
-      <a href="register.html" style="color: #5b9bd5; text-decoration: none;">Register New Admin</a>
     </div>
   </div>
 
   <script>
-    const loginForm = document.getElementById('login-form');
-    const loginBtn = document.getElementById('login-btn');
-    const errorMessage = document.getElementById('error-message');
-
-    // Check if already logged in
-    if (localStorage.getItem('token')) {
-      window.location.href = '/admin/dashboard.html';
-    }
-
-    loginForm.addEventListener('submit', async (e) => {
+    // Sign In Handler
+    document.getElementById('signin-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const email = document.getElementById('signin-email').value;
+      const password = document.getElementById('signin-password').value;
+      const errorDiv = document.getElementById('signin-error');
+      const submitBtn = document.getElementById('signin-btn');
 
-      // Disable button and show loading
-      loginBtn.disabled = true;
-      loginBtn.textContent = 'Signing in...';
-      errorMessage.classList.remove('show');
+      errorDiv.classList.remove('show');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
 
       try {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
+          if (data.verify_required) {
+            window.location.href = `/student/verify-email.html?email=${encodeURIComponent(data.email || email)}`;
+            return;
+          }
           throw new Error(data.error || 'Login failed');
         }
 
-        // Check if user is admin
         const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
-        if (tokenPayload.role !== 'ADMIN') {
-          throw new Error('Access denied. Admin privileges required.');
+
+        // Only allow student logins on this page
+        if (tokenPayload.role === 'ADMIN') {
+          throw new Error('Admin users must login at /admin/login.html');
         }
 
-        // Store token and redirect
         localStorage.setItem('token', data.token);
-        window.location.href = '/admin/dashboard.html';
+        window.location.href = '/student/dashboard.html';
 
       } catch (error) {
-        errorMessage.textContent = error.message;
-        errorMessage.classList.add('show');
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Sign In';
+        errorDiv.textContent = error.message;
+        errorDiv.classList.add('show');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'SIGN IN';
       }
     });
   </script>

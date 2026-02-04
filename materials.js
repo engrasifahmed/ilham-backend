@@ -59,9 +59,12 @@ router.post("/materials/create", auth, adminOnly, upload.single('file'), (req, r
         return res.status(400).json({ message: "Missing required fields (Title, Type, and File/URL)" });
     }
 
+    // Convert empty string to NULL for course_id
+    const courseIdValue = (course_id === '' || course_id === undefined || course_id === null) ? null : course_id;
+
     db.query(
         "INSERT INTO ielts_materials (title, description, material_type, file_url, course_id, is_free) VALUES (?,?,?,?,?,?)",
-        [title, description, material_type, file_url, course_id, is_free ? 1 : 0],
+        [title, description, material_type, file_url, courseIdValue, is_free ? 1 : 0],
         (err, result) => {
             if (err) {
                 console.error("Material creation error:", err);

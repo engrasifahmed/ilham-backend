@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Application - ILHAM Student Portal</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <aside class="sidebar" id="sidebar">
+        <!-- Main -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html" class="sidebar-link"><span>Dashboard</span></a></li>
+            </ul>
+        </div>
+        <!-- IELTS -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="ielts-materials.html" class="sidebar-link"><span>Materials</span></a>
+                </li>
+                <li class="sidebar-item"><a href="ielts-courses.html" class="sidebar-link"><span>Courses</span></a></li>
+                
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item"><a href="ielts-results.html" class="sidebar-link"><span>Results</span></a></li>
+            </ul>
+        </div>
+        <!-- Applications -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="applications.html" class="sidebar-link"><span>My
+                            Applications</span></a></li>
+                <li class="sidebar-item"><a href="universities.html" class="sidebar-link"><span>Universities</span></a>
+                </li>
+                <li class="sidebar-item"><a href="application-new.html" class="sidebar-link active"><span>New
+                            Application</span></a></li>
+            </ul>
+        </div>
+        <!-- Account -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="invoices.html" class="sidebar-link"><span>Invoices</span></a></li>
+                <li class="sidebar-item"><a href="documents.html" class="sidebar-link"><span>Documents</span></a></li>
+                <li class="sidebar-item"><a href="profile.html" class="sidebar-link"><span>Profile</span></a></li>
+                <li class="sidebar-item"><a href="notifications.html"
+                        class="sidebar-link"><span>Notifications</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Submit New Application</h1>
+            <p class="page-subtitle">Apply to your dream university</p>
+        </div>
+
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <form id="application-form" onsubmit="submitApplication(event)">
+                <div class="form-group">
+                    <label class="form-label">Select University</label>
+                    <select id="university-select" class="form-select" required>
+                        <option value="">-- Choose University --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Program / Course (Optional)</label>
+                    <input type="text" id="program-input" class="form-input" placeholder="e.g. Computer Science">
+                    <p class="form-hint">Leave blank if undecided</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Additional Notes (Optional)</label>
+                    <textarea id="notes-input" class="form-textarea" rows="4"
+                        placeholder="Any specific requirements or questions..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; justify-content: center; padding: 14px;">
+                    Submit Application
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="layout.js"></script>
+    <script>
+        const auth = checkAuth();
+        if (auth) {
+            const studentName = auth.payload.full_name || 'Student';
+            document.getElementById('student-name').textContent = studentName;
+            document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+        }
+
+        async function loadUniversities() {
+            try {
+                const response = await fetch('/api/student/universities', {
+                    headers: { 'Authorization': `Bearer ${auth.token}` }
+                });
+                if (response.ok) {
+                    const universities = await response.json();
+                    populateSelect(universities);
+                }
+            } catch (error) {
+                console.error("Error loading universities", error);
+                showToast("Failed to load universities", "error");
+            }
+        }
+
+        function populateSelect(universities) {
+            const select = document.getElementById('university-select');
+
+            // Get ID from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const preSelectedId = urlParams.get('university_id');
+
+            universities.forEach(uni => {
+                const option = document.createElement('option');
+                option.value = uni.id;
+                option.textContent = `${uni.name} (${uni.country})`;
+                if (preSelectedId && uni.id == preSelectedId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        async function submitApplication(e) {
+            e.preventDefault();
+
+            const universityId = document.getElementById('university-select').value;
+            const program = document.getElementById('program-input').value; // Currently not stored in DB schema but good for UI
+            // Note: Backend currently only takes university_id. We might lose program info unless schema updated.
+            // For now, we just send university_id as per API.
+
+            try {
+                const response = await fetch('/api/applications/apply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${auth.token}`
+                    },
+                    body: JSON.stringify({
+                        university_id: universityId,
+                        program: program || null,
+                        notes: document.getElementById('notes-input').value || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast("Application submitted successfully!", "success");
+                    setTimeout(() => {
+                        window.location.href = 'applications.html';
+                    }, 1500);
+                } else {
+                    showToast(data.error || "Failed to submit application", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Error submitting application", "error");
+            }
+        }
+
+        loadUniversities();
+    </script>
+</body>
+
+</html>

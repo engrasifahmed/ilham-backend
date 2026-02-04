@@ -62,4 +62,39 @@ router.get("/free-materials", (req, res) => {
   );
 });
 
+/* =========================
+   ALL IELTS MATERIALS (STUDENT)
+========================= */
+router.get("/materials", auth, (req, res) => {
+  db.query(
+    "SELECT * FROM ielts_materials ORDER BY created_at DESC",
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json(result);
+    }
+  );
+});
+
+/* =========================
+   IELTS RESULTS (STUDENT)
+========================= */
+router.get("/results", auth, (req, res) => {
+  // Get student ID first
+  db.query("SELECT id FROM students WHERE user_id = ?", [req.userId], (err, sResult) => {
+    if (err) return res.status(500).json(err);
+    if (!sResult.length) return res.status(404).json({ message: "Student not found" });
+
+    const studentId = sResult[0].id;
+
+    db.query(
+      "SELECT * FROM ielts_results WHERE student_id = ? ORDER BY date_taken DESC",
+      [studentId],
+      (rErr, rows) => {
+        if (rErr) return res.status(500).json(rErr);
+        res.json(rows);
+      }
+    );
+  });
+});
+
 module.exports = router;

@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
+    <title>Student Dashboard - ILHAM Education</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="dashboard.html" class="sidebar-link active">
+
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="ielts-materials.html" class="sidebar-link">
+
+                        <span>Materials</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-courses.html" class="sidebar-link">
+
+                        <span>Courses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-results.html" class="sidebar-link">
+
+                        <span>Results</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="applications.html" class="sidebar-link">
+
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="universities.html" class="sidebar-link">
+
+                        <span>Universities</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="application-new.html" class="sidebar-link">
+
+                        <span>New Application</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="invoices.html" class="sidebar-link">
+
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="documents.html" class="sidebar-link">
+
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="profile.html" class="sidebar-link">
+
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="notifications.html" class="sidebar-link">
+
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Welcome back, <span id="welcome-name">Student</span>!</h1>
+            <p class="page-subtitle">Here's what's happening with your applications today.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="app-count">0</div>
+                        <div class="stat-label">Active Applications</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="ielts-score">-</div>
+                        <div class="stat-label">IELTS Score</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="pending-count">0</div>
+                        <div class="stat-label">Pending Documents</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="unpaid-count">0</div>
+                        <div class="stat-label">Unpaid Invoices</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2 class="card-title">Quick Actions</h2>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="window.location.href='application-new.html'">
+                    Start New Application
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='ielts-materials.html'">
+                    Access IELTS Materials
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='invoices.html'">
+                    View Invoices
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='documents.html'">
+                    Upload Document
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Applications -->
+        <div class="card">
+            <h2 class="card-title">Recent Applications</h2>
+            <div class="table-container">
+                <table id="applications-table">
+                    <thead>
+                        <tr>
+                            <th>University</th>
+                            <th>Program</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applications-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">
+                                No applications yet. Start your first application!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <h2 class="card-title">Recent Activity</h2>
+            <div id="activity-feed">
+                <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                    No recent activity
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script src="layout.js"></script>
+    <script>
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                // Set student name from token (fallback)
+                const studentName = payload.full_name || 'Student';
+                document.getElementById('student-name').textContent = studentName;
+                document.getElementById('welcome-name').textContent = studentName.split(' ')[0];
+                document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+
+                // Load student profile
+                const profileResponse = await fetch('/api/student/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (profileResponse.ok) {
+                    const profile = await profileResponse.json();
+                    // Update with actual name from profile
+                    if (profile.full_name) {
+                        document.getElementById('student-name').textContent = profile.full_name;
+                        document.getElementById('welcome-name').textContent = profile.full_name;
+
+                        // Display photo or initials
+                        const avatarEl = document.getElementById('profile-avatar');
+                        if (profile.photo_url) {
+                            avatarEl.innerHTML = `<img src="${profile.photo_url}" alt="${profile.full_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                        } else {
+                            avatarEl.textContent = profile.full_name.charAt(0).toUpperCase();
+                        }
+                    }
+                }
+
+                // Load dashboard stats
+                const statsResponse = await fetch('/api/student/dashboard-stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('app-count').textContent = stats.applications || 0;
+                    document.getElementById('ielts-score').textContent = stats.ieltsScore || '-';
+                    document.getElementById('pending-count').textContent = stats.pendingDocuments || 0;
+                    document.getElementById('unpaid-count').textContent = stats.unpaidInvoices || 0;
+                }
+
+                // Load recent applications
+                const appsResponse = await fetch('/api/student/applications/recent', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (appsResponse.ok) {
+                    const applications = await appsResponse.json();
+
+                    // Display recent applications
+                    if (applications.length > 0) {
+                        const tbody = document.getElementById('applications-tbody');
+                        tbody.innerHTML = applications.map(app => `
+                            <tr>
+                                <td>${app.university_name || 'N/A'}</td>
+                                <td>${app.country || 'N/A'}</td>
+                                <td><span class="badge ${getStatusClass(app.status)}">${app.status}</span></td>
+                                <td>${app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="window.location.href='applications.html'">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+            }
+        }
+
+        function getStatusClass(status) {
+            const statusMap = {
+                'Draft': 'info',
+                'Submitted': 'info',
+                'Under Review': 'warning',
+                'Approved': 'success',
+                'Rejected': 'danger',
+                'Conditional': 'warning'
+            };
+            return statusMap[status] || 'info';
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+
+</html>

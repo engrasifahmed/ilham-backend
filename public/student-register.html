@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
+    <title>Student Registration - ILHAM Education</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            background: #fff;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Right Panel - Motivational Content */
+        .right-panel {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 50px;
+            clip-path: ellipse(100% 100% at 100% 50%);
+            z-index: 100;
+        }
+
+        .right-panel h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .right-panel p {
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .benefits {
+            list-style: none;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .benefits li {
+            margin: 12px 0;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .benefits li::before {
+            content: '•';
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .switch-btn {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 12px 50px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .switch-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Left Panel - Form */
+        .form-panel {
+            width: 55%;
+            padding: 50px 60px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-container img {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .logo-text {
+            color: #3B82F6;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        h2 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .required {
+            color: #EF4444;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #3B82F6;
+            background: #f8f9ff;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #3B82F6;
+            font-weight: 600;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 13px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10B981;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 13px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3B82F6, #10B981);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #3B82F6;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .right-panel,
+            .form-panel {
+                width: 100%;
+                position: relative;
+            }
+
+            .right-panel {
+                clip-path: none;
+                padding: 40px 30px;
+                order: 2;
+            }
+
+            .form-panel {
+                order: 1;
+                max-height: none;
+                padding: 40px 30px;
+            }
+
+            .right-panel h1 {
+                font-size: 32px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left Panel - Registration Form -->
+        <div class="form-panel">
+            <div class="logo-container">
+                <img src="/Logo.png" alt="ILHAM Education">
+
+            </div>
+
+            <h2>Create Account</h2>
+            <p class="subtitle">Join ILHAM Education to start your study abroad journey</p>
+
+            <form id="register-form">
+                <!-- Personal Information -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="full_name" name="full_name" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone <span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone" placeholder="+880 1234567890" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dob">Date of Birth <span class="required">*</span></label>
+                        <input type="date" id="dob" name="dob" required max="2010-01-01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passport_no">Passport Number</label>
+                        <input type="text" id="passport_no" name="passport_no" placeholder="A12345678">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="nationality">Nationality</label>
+                        <input type="text" id="nationality" name="nationality" placeholder="e.g., Bangladeshi">
+                    </div>
+                </div>
+
+                <!-- Guardian Information -->
+                <h3 class="section-title">Guardian Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="guardian_name">Guardian Name</label>
+                        <input type="text" id="guardian_name" name="guardian_name" placeholder="Guardian's full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guardian_phone">Guardian Phone</label>
+                        <input type="tel" id="guardian_phone" name="guardian_phone" placeholder="+880 1234567890">
+                    </div>
+                </div>
+
+                <!-- Account Security -->
+                <h3 class="section-title">Account Security</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="password">Password <span class="required">*</span></label>
+                        <input type="password" id="password" name="password" placeholder="Min. 8 characters" required
+                            minlength="8">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password <span class="required">*</span></label>
+                        <input type="password" id="confirm_password" name="confirm_password"
+                            placeholder="Re-enter password" required>
+                    </div>
+                </div>
+
+                <div id="error-message" class="error-message"></div>
+                <div id="success-message" class="success-message"></div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">CREATE ACCOUNT</button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="/login.html">Sign in here</a>
+            </div>
+        </div>
+
+        <!-- Right Panel - Motivational Content -->
+        <div class="right-panel">
+            <h1>Join ILHAM!</h1>
+            <p>Register to unlock your global education opportunities</p>
+            <ul class="benefits">
+                <li>500+ University Partners</li>
+                <li>Expert Counseling</li>
+                <li>IELTS Preparation</li>
+                <li>Visa Assistance</li>
+                <li>Scholarship Guidance</li>
+            </ul>
+            <a href="/login.html" class="switch-btn">SIGN IN</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            const submitBtn = document.getElementById('submit-btn');
+
+            // Hide previous messages
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            // Validate passwords match
+            if (data.password !== data.confirm_password) {
+                errorDiv.textContent = 'Passwords do not match!';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            // Validate password length
+            if (data.password.length < 8) {
+                errorDiv.textContent = 'Password must be at least 8 characters long!';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            // Prepare submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        full_name: data.full_name,
+                        email: data.email,
+                        phone: data.phone,
+                        dob: data.dob,
+                        passport_no: data.passport_no || null,
+                        nationality: data.nationality || null,
+                        guardian_name: data.guardian_name || null,
+                        guardian_phone: data.guardian_phone || null,
+                        password: data.password,
+                        role: 'STUDENT'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || result.message || 'Registration failed');
+                }
+
+                // Success!
+                if (result.verify_required) {
+                    successDiv.textContent = result.message || 'Verification required.';
+                    successDiv.classList.add('show');
+                    setTimeout(() => {
+                        window.location.href = `/student/verify-email.html?email=${encodeURIComponent(result.email || data.email)}`;
+                    }, 1500);
+                    return;
+                }
+
+                successDiv.textContent = 'Account created successfully! Redirecting to login...';
+                successDiv.classList.add('show');
+
+                // Clear form
+                e.target.reset();
+
+                // Redirect to login after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.add('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'CREATE ACCOUNT';
+            }
+        });
+    </script>
+</body>
+
+</html>

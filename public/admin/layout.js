@@ -3,17 +3,17 @@
 // ============================
 
 function checkAuth() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('admin_token');
     if (!token) {
-        window.location.href = '/login.html';
+        window.location.href = '/admin/login.html';
         return false;
     }
     return token;
 }
 
 function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/login.html';
+    localStorage.removeItem('admin_token');
+    window.location.href = '/admin/login.html';
 }
 
 // ============================
@@ -72,7 +72,7 @@ function renderNavbar() {
 
     navbarContainer.innerHTML = `
     <div class="navbar">
-      <div class="logo">ILHAM ADMIN</div>
+      <div class="logo"><img src="/Logo.png" alt="ILHAM Admin" style="height: 40px;"></div>
       <a href="dashboard.html" class="${currentPage === 'dashboard' ? 'active' : ''}">Dashboard</a>
       <a href="applications.html" class="${currentPage === 'applications' ? 'active' : ''}">Applications</a>
       <a href="students.html" class="${currentPage === 'students' ? 'active' : ''}">Students</a>
@@ -81,6 +81,7 @@ function renderNavbar() {
       <a href="ielts-materials.html" class="${currentPage === 'ielts-materials' ? 'active' : ''}">IELTS Materials</a>
       <a href="invoices.html" class="${currentPage === 'invoices' ? 'active' : ''}">Invoices</a>
       <a href="payments.html" class="${currentPage === 'payments' ? 'active' : ''}">Payments</a>
+      <a href="site-management.html" class="${currentPage === 'site-management' ? 'active' : ''}">Site Management</a>
       <a href="notifications.html" class="${currentPage === 'notifications' ? 'active' : ''}">Notifications</a>
       <a href="reminders.html" class="${currentPage === 'reminders' ? 'active' : ''}">Reminders</a>
       <a href="#" onclick="logout()" class="logout">Logout</a>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ilham Education Consultancy - Your Gateway to Global Education.">
+    <title>Ilham Education Consultancy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <!-- Header & Navigation -->
+    <header class="header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <img src="/Logo.png" alt="Ilham Education" style="height: 50px;">
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/#about">About Us</a></li>
+                <li>
+                    <a href="/#services">Services ▾</a>
+                    <ul class="dropdown">
+                        <li><a href="/page.html?section=study_abroad">Study Abroad Services</a></li>
+                        <li><a href="/page.html?section=ielts_prep">IELTS Preparation</a></li>
+                    </ul>
+                </li>
+                <li><a href="/#admission">Admission Process</a></li>
+                <li><a href="/page.html?section=eligibility">Eligibility</a></li>
+                <li><a href="/page.html?section=faq">FAQ</a></li>
+                <li><a href="/#contact">Contact Us</a></li>
+                <li><a href="/login.html" class="student-login-link">Student Panel</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+        </nav>
+    </header>
+
+    <!-- Mobile Sidebar -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close">&times;</button>
+        <ul class="sidebar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/#about">About Us</a></li>
+            <li><a href="/#services">Services</a></li>
+            <li><a href="/page.html?section=eligibility">Eligibility</a></li>
+            <li><a href="/page.html?section=faq">FAQ</a></li>
+            <li><a href="/#contact">Contact Us</a></li>
+            <li><a href="/login.html">Student Panel</a></li>
+        </ul>
+    </aside>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1 data-cms-key="hero_title">Your Gateway to Global Education</h1>
+            <p data-cms-key="hero_subtitle">Expert guidance for study abroad, admissions, scholarships, and test
+                preparation.</p>
+            <div class="hero-buttons">
+                <button class="btn-primary" onclick="window.location.href='/student-register.html'">Apply Now</button>
+                <button class="btn-secondary" onclick="window.location.href='#ielts'">IELTS Courses</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section about" id="about">
+        <div class="container">
+            <div class="section-header">
+                <h2>About Ilham Education</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our Mission</h3>
+                    <p data-cms-key="about_mission">At Ilham Education Consultancy, we are dedicated to empowering
+                        students to reach their full academic potential.</p>
+                    <ul class="about-values">
+                        <li>Expert Counseling & Career Guidance</li>
+                        <li>Global Network of Partner Universities</li>
+                        <li>Proven Track Record of Visa Success</li>
+                    </ul>
+                </div>
+                <!-- CSS Visual Placeholder -->
+                <div class="about-image"
+                    style="min-height: 320px; background: radial-gradient(circle at top left, var(--white), #EEF2FF); border-radius: 24px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg);">
+                    <div style="font-size: 80px; opacity: 0.15; filter: grayscale(1);">🎓</div>
+                    <div
+                        style="position: absolute; inset: 0; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px; opacity: 0.4;">
+                    </div>
+                    <div
+                        style="position: absolute; bottom: -20px; right: -20px; width: 150px; height: 150px; background: var(--secondary); opacity: 0.1; border-radius: 50%; filter: blur(40px);">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Study Abroad Destinations -->
+    <section class="section" id="destinations" style="background-color: var(--white);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Study Abroad Destinations</h2>
+                <p>Explore opportunities in top educational hubs</p>
+            </div>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+                <div class="card destination-card" onclick="filterUniversities('Malaysia')">
+                    <h3>🇲🇾 Malaysia</h3>
+                    <p>Affordable application fees and quality education.</p>
+                    <div style="margin-top: 16px; color: var(--primary); font-weight: 600; font-size: 14px;">Explore →
+                    </div>
+                </div>
+                <div class="card destination-card" onclick="filterUniversities('Australia')">
+                    <h3>🇦🇺 Australia</h3>
+                    <p>World-class research and post-study work opportunities.</p>
+                    <div style="margin-top: 16px; color: var(--primary); font-weight: 600; font-size: 14px;">Explore →
+                    </div>
+                </div>
+                <div class="card destination-card" onclick="filterUniversities('UK')">
+                    <h3>🇬🇧 UK</h3>
+                    <p>Short duration courses and prestigious heritage.</p>
+                    <div style="margin-top: 16px; color: var(--primary); font-weight: 600; font-size: 14px;">Explore →
+                    </div>
+                </div>
+                <div class="card destination-card" onclick="filterUniversities('Europe')">
+                    <h3>🇪🇺 Europe</h3>
+                    <p>Diverse cultures and schengen visa advantages.</p>
+                    <div style="margin-top: 16px; color: var(--primary); font-weight: 600; font-size: 14px;">Explore →
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Universities Listing -->
+    <section class="section" id="universities" style="background: var(--light-bg);">
+        <div class="container">
+            <div class="section-header">
+                <h2 style="color: var(--dark);">Partner Universities</h2>
+                <p>Browse our network of institutions</p>
+            </div>
+            <div id="universities-grid" class="grid"
+                style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
+                <div class="spinner"></div> <!-- Loaded via landing.js -->
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn-secondary" onclick="window.location.href='/page.html?section=universities'">View All
+                    Universities</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- IELTS Overview -->
+    <section class="section" id="ielts">
+        <!-- Background handled in CSS -->
+        <div class="container">
+            <div class="section-header">
+                <h2>IELTS Preparation</h2>
+                <p>Courses and Free Materials to boost your score</p>
+            </div>
+
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px;">
+                <!-- Courses Column -->
+                <div>
+                    <h3 style="margin-bottom: 24px; color: var(--primary); font-weight: 700;">Upcoming Courses</h3>
+                    <div id="ielts-courses-grid" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <!-- Materials Column -->
+                <div>
+                    <h3 style="margin-bottom: 24px; color: var(--secondary); font-weight: 700;">Free Materials</h3>
+                    <div id="ielts-materials-grid" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Contact Us</h2>
+                <p>We'd love to hear from you</p>
+            </div>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>Get In Touch</h3>
+                    <p style="margin-bottom: 32px; color: rgba(255,255,255,0.7);">Ready to start your journey? Contact
+                        us for a free consultation.</p>
+
+                    <div style="margin-bottom: 24px;">
+                        <div
+                            style="font-size: 14px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; letter-spacing: 1px;">
+                            Address</div>
+                        <div data-cms-key="contact_address" style="font-size: 18px;">Dhaka, Bangladesh</div>
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <div
+                            style="font-size: 14px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; letter-spacing: 1px;">
+                            Email</div>
+                        <div data-cms-key="contact_email" style="font-size: 18px;">info@ilhameducation.com</div>
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <div
+                            style="font-size: 14px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; letter-spacing: 1px;">
+                            Phone</div>
+                        <div data-cms-key="contact_phone" style="font-size: 18px;">+8801711-441199</div>
+                    </div>
+                </div>
+                <form class="contact-form" id="contact-form">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="name" required placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" required placeholder="your.email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" required placeholder="How can we help you?"></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Inquiry</button>
+                    <!-- Mock link for privacy policy -->
+                    <div style="margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.4); text-align: center;">By
+                        clicking submit you agree to our <a href="#" class="privacy-trigger"
+                            style="color: rgba(255,255,255,0.6); text-decoration: underline;">Terms & Privacy
+                            Policy</a>.</div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="/Logo.png" alt="Ilham Education"
+                        style="height: 48px; margin-bottom: 24px; filter: brightness(0) invert(1);">
+                    <p style="margin-bottom: 24px;">Empowering students worldwide to achieve their academic goals
+                        through expert guidance, personalized counseling, and a global network of partner universities.
+                    </p>
+                    <div class="social-links" style="display: flex; gap: 16px;">
+                        <a href="#"
+                            style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; border-radius: 50%;">f</a>
+                        <a href="#"
+                            style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; border-radius: 50%;">t</a>
+                        <a href="#"
+                            style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; border-radius: 50%;">in</a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="/login.html">Student Login</a></li>
+                        <li><a href="/login.html?admin=true">Admin Login</a></li>
+                        <li><a href="/page.html?section=faq">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Services</h3>
+                    <ul class="footer-links">
+                        <li><a href="/page.html?section=study_abroad">Study Abroad</a></li>
+                        <li><a href="/page.html?section=ielts_prep">IELTS Courses</a></li>
+                        <li><a href="/page.html?section=eligibility">Eligibility Check</a></li>
+                        <li><a href="#universities">University Application</a></li>
+                        <li><a href="#contact">Visa Guidance</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Stay Updated</h3>
+                    <p style="margin-bottom: 16px; font-size: 14px;">Subscribe to our newsletter for scholarship
+                        updates.</p>
+                    <form class="footer-form" onsubmit="event.preventDefault(); alert('Subscribed!');">
+                        <input type="email" placeholder="Enter your email" required>
+                        <button type="submit" class="btn-primary" style="padding: 10px; width: 100%;">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                &copy; 2025 Ilham Education Consultancy. All rights reserved. | <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/cms-loader.js"></script>
+    <!-- Privacy Policy Modal -->
+    <div class="modal-overlay" id="privacy-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Privacy Policy</h3>
+                <button class="modal-close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Last Updated: January 2025</strong></p>
+                <p>Welcome to Ilham Education Consultancy. We value your privacy and are committed to protecting your
+                    personal data. This policy explains how we collect, use, and share your information when you use our
+                    consultancy services.</p>
+
+                <h4>1. Information We Collect</h4>
+                <p>We may collect personal information such as your name, email address, phone number, academic
+                    background,
+                    and financial documents necessary for university applications and visa processing.</p>
+
+                <h4>2. How We Use Your Information</h4>
+                <ul>
+                    <li>To process university applications and scholarship requests.</li>
+                    <li>To provide visa guidance and travel support.</li>
+                    <li>To communicate with you regarding your application status.</li>
+                    <li>To send newsletters or updates (if subscribed).</li>
+                </ul>
+
+                <h4>3. Data Sharing</h4>
+                <p>We do not sell your data. We only share it with:</p>
+                <ul>
+                    <li>Partner universities for admission purposes.</li>
+                    <li>Visa authorities (embassies) as required for processing.</li>
+                </ul>
+
+                <h4>4. Data Security</h4>
+                <p>We implement industry-standard security measures to protect your documents and personal information
+                    from
+                    unauthorized access.</p>
+
+                <h4>5. Contact Us</h4>
+                <p>If you have any questions about this policy, please contact us at
+                    <strong>info@ilhameducation.com</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/landing.js"></script>
+    <script>
+        // Modal Logic
+        const modal = document.getElementById('privacy-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const privacyTriggers = document.querySelectorAll('.privacy-trigger');
+
+        privacyTriggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                modal.classList.add('active');
+            });
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // Hamburger Menu Logic
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const closeBtn = document.getElementById('sidebar-close');
+
+        function toggleMenu() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        hamburger.addEventListener('click', toggleMenu);
+        closeBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+
+        // Contact Form Mock
+        document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+
+            await new Promise(r => setTimeout(r, 1500)); // Mock delay
+
+            alert('Your message has been sent successfully!');
+            btn.textContent = originalText;
+            btn.disabled = false;
+            e.target.reset();
+        });
+
+        // Simple filter stub
+        function filterUniversities(country) {
+            alert(`Filter by ${country}: This feature would redirect to the search page.`);
+            // window.location.href = `/public/page.html?section=universities&country=${country}`;
+        }
+    </script>
+</body>
+
+</html>

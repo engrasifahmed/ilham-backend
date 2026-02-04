@@ -1,0 +1,448 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices - ILHAM Student Portal</title>
+    <link rel="stylesheet" href="layout.css">
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .glass-modal {
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(30, 30, 30, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            color: white;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: white;
+        }
+
+        .glass-modal h2,
+        .glass-modal h3,
+        .glass-modal div {
+            color: white;
+        }
+
+        .glass-modal .text-muted {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/Logo.png" alt="ILHAM" style="height: 40px;">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="profile-section" id="profile-section">
+                <div class="profile-avatar" id="profile-avatar">S</div>
+                <span id="student-name">Student</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Main</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="dashboard.html" class="sidebar-link">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">IELTS</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="ielts-materials.html" class="sidebar-link">
+                        <span>Materials</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-courses.html" class="sidebar-link">
+                        <span>Courses</span>
+                    </a>
+                </li>
+                
+                <li class="sidebar-item">
+                    <a href="ielts-mock.html" class="sidebar-link">
+                        <span>Mock Tests</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="ielts-results.html" class="sidebar-link">
+                        <span>Results</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Applications</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="applications.html" class="sidebar-link">
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="universities.html" class="sidebar-link">
+                        <span>Universities</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="application-new.html" class="sidebar-link">
+                        <span>New Application</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Account</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="invoices.html" class="sidebar-link active">
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="documents.html" class="sidebar-link">
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="profile.html" class="sidebar-link">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="notifications.html" class="sidebar-link">
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">My Invoices</h1>
+            <p class="page-subtitle">Manage your payments and invoices</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="total-invoices">0</div>
+                        <div class="stat-label">Total Invoices</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="unpaid-amount">RM 0</div>
+                        <div class="stat-label">Unpaid</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="paid-amount">RM 0</div>
+                        <div class="stat-label">Paid</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <select id="status-filter" onchange="filterInvoices()"
+                    style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white;">
+                    <option value="">All Status</option>
+                    <option value="Unpaid">Unpaid</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="card">
+            <h2 class="card-title">All Invoices</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoices-tbody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                                <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+                                <p>Loading invoices...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Invoice Details Modal -->
+    <div id="invoice-modal" class="modal-overlay" onclick="if(event.target === this) closeInvoiceModal()">
+        <div class="glass-modal">
+            <button class="close-modal" onclick="closeInvoiceModal()">×</button>
+            <div id="invoice-modal-content">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="layout.js"></script>
+    <script>
+        let allInvoices = [];
+
+        async function loadInvoices() {
+            try {
+                const auth = checkAuth();
+                if (!auth) return;
+
+                // Set student name
+                const studentName = auth.payload.full_name || 'Student';
+                document.getElementById('student-name').textContent = studentName;
+                document.getElementById('profile-avatar').textContent = studentName.charAt(0).toUpperCase();
+
+                // Load invoices
+                const response = await fetch('/api/student/invoices', {
+                    headers: {
+                        'Authorization': `Bearer ${auth.token}`
+                    }
+                });
+
+                if (response.ok) {
+                    allInvoices = await response.json();
+                    displayInvoices(allInvoices);
+                    updateSummary(allInvoices);
+                } else {
+                    document.getElementById('invoices-tbody').innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                                <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                                <p>Failed to load invoices</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Load invoices error:', error);
+                document.getElementById('invoices-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                            <p>Error loading invoices</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function updateSummary(invoices) {
+            document.getElementById('total-invoices').textContent = invoices.length;
+
+            const unpaid = invoices
+                .filter(inv => inv.status === 'Unpaid')
+                .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+
+            const paid = invoices
+                .filter(inv => inv.status === 'Paid')
+                .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+
+            document.getElementById('unpaid-amount').textContent = formatCurrency(unpaid);
+            document.getElementById('paid-amount').textContent = formatCurrency(paid);
+        }
+
+        function displayInvoices(invoices) {
+            const tbody = document.getElementById('invoices-tbody');
+
+            if (invoices.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: rgba(255,255,255,0.5);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+                            <p>No invoices found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = invoices.map(inv => `
+                <tr>
+                    <td><strong>#${inv.id}</strong></td>
+                    <td>${inv.description || 'Application Fee'}</td>
+                    <td><strong>${formatCurrency(inv.amount)}</strong></td>
+                    <td><span class="badge ${getStatusBadge(inv.status)}">${inv.status}</span></td>
+                    <td>${formatDate(inv.due_date)}</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            ${inv.status === 'Unpaid' ? `
+                                <button class="btn btn-primary" style="padding: 6px 16px; font-size: 13px;" 
+                                    onclick="payInvoice(${inv.id})">
+                                    💳 Pay Now
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-secondary" style="padding: 6px 16px; font-size: 13px;" 
+                                onclick="viewInvoice(${inv.id})">
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterInvoices() {
+            const statusFilter = document.getElementById('status-filter').value;
+
+            const filtered = allInvoices.filter(inv => {
+                return !statusFilter || inv.status === statusFilter;
+            });
+
+            displayInvoices(filtered);
+        }
+
+        function payInvoice(id) {
+            showToast('Payment portal coming soon!', 'info');
+            // TODO: Integrate with payment gateway
+        }
+
+        function viewInvoice(id) {
+            const invoice = allInvoices.find(inv => inv.id == id);
+            if (!invoice) return;
+
+            const content = document.getElementById('invoice-modal-content');
+            const statusColor = getStatusBadge(invoice.status);
+
+            content.innerHTML = `
+                <h2 style="font-size: 24px; margin-bottom: 24px; text-align: center;">Invoice Details</h2>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                        <div>
+                            <div class="text-muted" style="font-size: 12px; margin-bottom: 4px;">Invoice Number</div>
+                            <div style="font-size: 20px; font-weight: 600;">#${invoice.id}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="text-muted" style="font-size: 12px; margin-bottom: 4px;">Status</div>
+                            <span class="badge ${statusColor}" style="font-size: 14px; padding: 6px 16px;">${invoice.status}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-top: 16px;">
+                        <div style="margin-bottom: 12px;">
+                            <div class="text-muted" style="font-size: 12px; margin-bottom: 4px;">Description</div>
+                            <div>${invoice.description || 'Application Fee'}</div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div class="text-muted" style="font-size: 12px; margin-bottom: 4px;">Amount</div>
+                            <div style="font-size: 24px; font-weight: 600; color: var(--student-primary);">${formatCurrency(invoice.amount)}</div>
+                        </div>
+                        ${invoice.due_date ? `
+                        <div style="margin-bottom: 12px;">
+                            <div class="text-muted" style="font-size: 12px; margin-bottom: 4px;">Due Date</div>
+                            <div>${formatDate(invoice.due_date)}</div>
+                        </div>` : ''}
+                    </div>
+                </div>
+                
+                ${invoice.status === 'Unpaid' ? `
+                <div style="text-align: center;">
+                    <button class="btn btn-primary" onclick="closeInvoiceModal(); payInvoice(${invoice.id});" 
+                        style="padding: 14px 32px; font-size: 16px;">
+                        💳 Pay Now
+                    </button>
+                </div>` : ''}
+                
+                ${invoice.status === 'Paid' ? `
+                <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); padding: 16px; border-radius: 12px; text-align: center;">
+                    <div style="color: #22c55e; font-weight: 600; margin-bottom: 4px;">✓ Payment Received</div>
+                    <div class="text-muted" style="font-size: 14px;">Thank you for your payment</div>
+                </div>` : ''}
+            `;
+
+            document.getElementById('invoice-modal').classList.add('active');
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoice-modal').classList.remove('active');
+        }
+
+        // Load invoices on page load
+        loadInvoices();
+    </script>
+</body>
+
+</html>
